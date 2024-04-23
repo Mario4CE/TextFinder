@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.effect.Bloom?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<SplitPane dividerPositions="0.35501355013550134" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="482.0" prefWidth="740.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.textfinder.Controller">
+  <items>
+    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="398.0" prefWidth="216.0">
+         <children>
+            <SplitPane dividerPositions="0.15637860082304528" layoutX="-3.0" layoutY="-2.0" orientation="VERTICAL" prefHeight="488.0" prefWidth="265.0">
+              <items>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="150.0" prefWidth="277.0">
+                     <children>
+                        <Button fx:id="addButton" layoutX="8.0" layoutY="10.0" mnemonicParsing="false" onAction="#addFile" text="Añadir Documento" />
+                        <Button fx:id="deleteButton" layoutX="132.0" layoutY="10.0" mnemonicParsing="false" onAction="#deleteFile" text="Eliminar Documento" />
+                        <Button fx:id="updateButton" layoutX="110.0" layoutY="37.0" mnemonicParsing="false" onAction="#updateFiles" text="Actualizar" />
+                        <Button fx:id="startButton" layoutX="187.0" layoutY="43.0" mnemonicParsing="false" onAction="#startIndexing" prefHeight="32.0" prefWidth="74.0" style="-fx-background-color: GREEN;" text="Let's start" textAlignment="CENTER" textFill="WHITE">
+                           <font>
+                              <Font size="13.0" />
+                           </font>
+                           <effect>
+                              <Bloom />
+                           </effect>
+                        </Button>
+                        <Button fx:id="addDirButton" layoutX="8.0" layoutY="37.0" mnemonicParsing="false" onAction="#addDir" text="Añadir Carpeta" />
+                     </children>
+                  </AnchorPane>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="388.0" prefWidth="261.0">
+                     <children>
+                        <AnchorPane layoutX="6.0" layoutY="6.0" prefHeight="391.0" prefWidth="252.0" style="-fx-background-color: GRAY;">
+                           <children>
+                              <ListView fx:id="fileListView" layoutX="8.0" layoutY="7.0" prefHeight="378.0" prefWidth="236.0" />
+                           </children>
+                        </AnchorPane>
+                     </children>
+                  </AnchorPane>
+              </items>
+            </SplitPane>
+         </children></AnchorPane>
+    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="398.0" prefWidth="335.0">
+         <children>
+            <SplitPane dividerPositions="0.15625" layoutY="-1.0" orientation="VERTICAL" prefHeight="482.0" prefWidth="479.0">
+              <items>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                     <children>
+                        <AnchorPane layoutX="6.0" layoutY="12.0" prefHeight="55.0" prefWidth="276.0" style="-fx-background-color: GRAY;">
+                           <children>
+                              <TextField fx:id="searchPane" layoutX="8.0" layoutY="12.0" prefHeight="32.0" prefWidth="197.0" />
+                              <Button fx:id="searchButton" layoutX="211.0" layoutY="15.0" mnemonicParsing="false" onAction="#searchWord" text="Buscar" />
+                           </children>
+                        </AnchorPane>
+                        <Button fx:id="openButton" layoutX="330.0" layoutY="7.0" mnemonicParsing="false" onAction="#openFile" text="Abrir documento" />
+                        <ComboBox fx:id="sortbyBox" layoutX="309.0" layoutY="40.0" prefWidth="150.0" promptText="Ordenar por:" />
+                     </children>
+                  </AnchorPane>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0" />
+              </items>
+            </SplitPane>
+         </children></AnchorPane>
+  </items>
+</SplitPane>
