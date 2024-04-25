@@ -7,15 +7,18 @@ import javafx.scene.control.*;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
+
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
+
 
 public class Controller implements Initializable {
 
@@ -24,7 +27,9 @@ public class Controller implements Initializable {
     @FXML
     private ComboBox<String> sortbyBox;
 
-    ArrayList listFiles = new ArrayList<File>();
+    List<File> listFiles = new ArrayList<>();
+
+    private AVLTree avlTree;
     private String[] sortBy = {"nombre del archivo", "fecha de creación", "tamaño"};
 
 
@@ -33,7 +38,7 @@ public class Controller implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         sortbyBox.getItems().addAll(sortBy);
-
+        avlTree = new AVLTree();
     }
 
     //este sortResultsBy is lo que quiero que pase cuando se selecciona una de las opciones del choiceBox
@@ -49,14 +54,39 @@ public class Controller implements Initializable {
         FileChooser fileChooser = new FileChooser();
         File selectedFile = fileChooser.showOpenDialog(null);
 
-        if (selectedFile != null){
+        if (selectedFile != null) {
             // los files aparte de añadirse a la list view, se está añadiendo a una lista para usarlos despues
             listFiles.add(selectedFile);
             fileListView.getItems().add(selectedFile.getName());
-
+            indexPDFFile(selectedFile);
         }else{
             System.out.println("File not valid");
         }
+    }
+
+    private void indexPDFFile(File pdfFile) {
+        try {
+            String extractedText = extractText(pdfFile);
+            // filesData.add(extractedText);
+            String[] words = extractedText.split("\\s+");
+            for (String word: words) {
+                String normalizedWord = word.toLowerCase();
+                avlTree.root = avlTree.insert(avlTree.root, normalizedWord);
+            }
+        } catch (IOException e) {
+            System.err.println("Error al guardar el texto en el arbol: " + e.getMessage());
+        }
+    }
+
+    private String extractText(File file) throws IOException {
+        String extractedText = "";
+        try (PDDocument document = Loader.loadPDF(file)) {
+            PDFTextStripper textStripper = new PDFTextStripper();
+            extractedText = textStripper.getText(document);
+        } catch (IOException e) {
+            System.err.println("Error al leer el archivo PDF: " + e.getMessage());
+        }
+        return extractedText;
     }
 
     //boton para añadir carpetas
@@ -106,6 +136,15 @@ public class Controller implements Initializable {
     //boton search
     @FXML
     void searchWord(ActionEvent event) {
+        String word = "documento";
+
+        boolean hasResults = avlTree.search(word.toLowerCase());
+
+        if (hasResults) {
+            System.out.println("Palabra clave encontrada en el archivo: " + word);
+        } else {
+            System.out.println("Palabra clave no encontrada en el archivo: " + word);
+        }
     }
 
     //boton de actualizar
@@ -119,6 +158,5 @@ public class Controller implements Initializable {
     //no lo ponemos en el initialize para que se haga pq primero se tiene que seleccionar a cuales archivos les quiero hacer eso
     @FXML
     void startIndexing(ActionEvent event) {
-
     }
 }
