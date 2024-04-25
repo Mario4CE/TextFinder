@@ -51,16 +51,34 @@ public class Controller implements Initializable {
 
     //boton para añadir un file
     @FXML
+    //Funcion que agrega documentos uno a uno
     void addFile(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
         File selectedFile = fileChooser.showOpenDialog(null);
 
         if (selectedFile != null) {
-            // los files aparte de añadirse a la list view, se está añadiendo a una lista para usarlos despues
+            String fileExtension = "";
+            if (selectedFile.getName().endsWith(".txt")) {
+                fileExtension = "txt";
+                // Llamar a la función para manejar archivos .txt
+                indexTXTFile(selectedFile);
+            } else if (selectedFile.getName().endsWith(".docx")) {
+                fileExtension = "docx";
+                // Llamar a la función para manejar archivos .docx
+                indexDOCXFile(selectedFile);
+            } else if (selectedFile.getName().endsWith(".pdf")) {
+                fileExtension = "pdf";
+                // Llamar a la función para manejar archivos .pdf
+                indexPDFFile(selectedFile);
+            } else {
+                System.out.println("File type not supported");
+                return; // Evita agregar el archivo si no es soportado
+            }
+
+            // Añadir el archivo a la lista para su uso posterior solo si es soportado
             listFiles.add(selectedFile);
             fileListView.getItems().add(selectedFile.getName());
-            indexPDFFile(selectedFile);
-        }else{
+        } else {
             System.out.println("File not valid");
         }
     }
@@ -87,6 +105,7 @@ public class Controller implements Initializable {
             System.err.println("Error al guardar el texto en el arbol: " + e.getMessage());
         }
     }
+
     // Método para indexar un archivo TXT en el árbol AVL
     private void indexTXTFile(File txtFile) {
         try (BufferedReader reader = new BufferedReader(new FileReader(txtFile))) {
@@ -105,6 +124,7 @@ public class Controller implements Initializable {
             System.err.println("Error al guardar el texto en el arbol: " + e.getMessage());
         }
     }
+
     // Método para indexar un archivo DOCX en el árbol AVL
     private void indexDOCXFile(File docxFile) {
         try (FileInputStream fis = new FileInputStream(docxFile);
@@ -121,6 +141,7 @@ public class Controller implements Initializable {
             System.err.println("Error al guardar el texto en el arbol: " + e.getMessage());
         }
     }
+
     // Método para extraer texto de un archivo PDF, TXT, DOCX
     private String extractText(File file) throws IOException {
         String extractedText = ""; // Inicializa la variable para almacenar el texto extraído
@@ -173,24 +194,41 @@ public class Controller implements Initializable {
 
     //boton para añadir carpetas
     @FXML
+    //Funcion que agrega una carpeta de documentos
     void addDir(ActionEvent event) {
         DirectoryChooser directoryChooser = new DirectoryChooser();
         File selectedDirectory = directoryChooser.showDialog(null);
 
-        if (selectedDirectory != null){
+        if (selectedDirectory != null) {
             var startDir = selectedDirectory.toPath();
 
             try {
+                // Filtrar para incluir solo archivos .pdf, .txt, y .docx
                 Files.walk(startDir)
-                        .forEach(dir ->{
+                        .filter(path -> {
+                            String fileName = path.getFileName().toString();
+                            return fileName.endsWith(".pdf") || fileName.endsWith(".txt") || fileName.endsWith(".docx");
+                        })
+                        .forEach(dir -> {
+                            // Añadir el archivo a la lista para su uso posterior
+                            listFiles.add(dir.toFile());
                             fileListView.getItems().add(dir.getFileName().toString());
+
+                            // Llamar a la función apropiada basada en el tipo de archivo
+                            if (dir.getFileName().toString().endsWith(".txt")) {
+                                indexTXTFile(dir.toFile());
+                            } else if (dir.getFileName().toString().endsWith(".docx")) {
+                                indexDOCXFile(dir.toFile());
+                            } else if (dir.getFileName().toString().endsWith(".pdf")) {
+                                indexPDFFile(dir.toFile());
+                            }
                         });
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-
     }
+
 
     //boton para eliminar un file
     @FXML
@@ -218,7 +256,7 @@ public class Controller implements Initializable {
     //boton search
     @FXML
     void searchWord(ActionEvent event) {
-        String word = "hola";
+        String word = "Mario";
 
         boolean hasResults = avlTree.search(word.toLowerCase());
 
