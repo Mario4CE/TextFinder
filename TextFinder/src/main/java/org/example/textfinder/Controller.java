@@ -27,6 +27,8 @@ public class Controller implements Initializable {
     private ListView<String> fileListView;
     @FXML
     private ComboBox<String> sortbyBox;
+    @FXML
+    private TextField searchPane;
 
     List<File> listFiles = new ArrayList<>();
 
@@ -255,8 +257,8 @@ public class Controller implements Initializable {
 
     //boton search
     @FXML
-    void searchWord(ActionEvent event) {
-        String word = "Mario";
+    void searchWord(ActionEvent event ) {
+        String word = searchPane.getText();
 
         boolean hasResults = avlTree.search(word.toLowerCase());
 
