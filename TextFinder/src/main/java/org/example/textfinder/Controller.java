@@ -97,7 +97,7 @@ public class Controller implements Initializable {
             // Itera sobre cada palabra
             for (String word: words) {
                 // Normaliza la palabra a minúsculas
-                String normalizedWord = word.toLowerCase();
+                String normalizedWord = word;
 
                 // Inserta la palabra normalizada en el árbol AVL
                 avlTree.root = avlTree.insert(avlTree.root, normalizedWord);
@@ -119,7 +119,7 @@ public class Controller implements Initializable {
 
             String[] words = extractedText.toString().split("\\s+");
             for (String word : words) {
-                String normalizedWord = word.toLowerCase();
+                String normalizedWord = word;
                 avlTree.root = avlTree.insert(avlTree.root, normalizedWord);
             }
         } catch (IOException e) {
@@ -136,7 +136,7 @@ public class Controller implements Initializable {
             String extractedText = extractor.getText();
             String[] words = extractedText.split("\\s+");
             for (String word : words) {
-                String normalizedWord = word.toLowerCase();
+                String normalizedWord = word;
                 avlTree.root = avlTree.insert(avlTree.root, normalizedWord);
             }
         } catch (IOException e) {
@@ -260,7 +260,7 @@ public class Controller implements Initializable {
     void searchWord(ActionEvent event ) {
         String word = searchPane.getText();
 
-        boolean hasResults = avlTree.search(word.toLowerCase());
+        boolean hasResults = avlTree.search(word);
 
         if (hasResults) {
             System.out.println("Palabra clave encontrada en el archivo: " + word);
