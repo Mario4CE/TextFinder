@@ -1,19 +1,5 @@
 package org.example.textfinder;
 // Clase para representar un nodo en un Árbol AVL
-class AVLNode {
-    String key; // Clave del nodo
-    AVLNode left; // Referencia al hijo izquierdo del nodo
-    AVLNode right; // Referencia al hijo derecho del nodo
-    int height; // Altura del nodo, que es la longitud del camino más largo desde el nodo hasta una hoja
-
-    // Constructor para crear un nuevo nodo con una clave dada
-    public AVLNode(String key) {
-        this.key = key;
-        this.left = null; // Inicializa el hijo izquierdo como null
-        this.right = null; // Inicializa el hijo derecho como null
-        this.height = 1; // Inicializa la altura del nodo como 1
-    }
-}
 
 // Clase principal para el Árbol AVL
 public class AVLTree {
@@ -71,63 +57,74 @@ public class AVLTree {
     }
 
     // Método para insertar una clave en el árbol AVL
-    public AVLNode insert(AVLNode node, String key) {
-        // Si el nodo es null, crea un nuevo nodo con la clave dada
-        if (node == null)
-            return new AVLNode(key);
+    public AVLNode insert(AVLNode node, WordData data) {
+        if (node == null) {
+            return new AVLNode(data); // If the node is null, create a new one
+        }
 
-        // Inserta la clave en el lugar correspondiente
-        if (key.compareTo(node.key) < 0)
-            node.left = insert(node.left, key);
-        else if (key.compareTo(node.key) > 0)
-            node.right = insert(node.right, key);
-        else
-            return node; // Si la clave ya existe, no hace nada
+        // Comparison logic based on the word in WordData
+        int comparison = data.getWord().compareTo(node.data.getWord());
 
-        // Actualiza la altura del nodo
-        node.height = 1 + max(height(node.left), height(node.right));
+        if (comparison < 0) {
+            node.left = insert(node.left, data); // Insert into the left subtree
+        } else if (comparison > 0) {
+            node.right = insert(node.right, data); // Insert into the right subtree
+        } else {
+            // Handle the case where the WordData already exists
+            return node;
+        }
 
-        // Obtiene el factor de equilibrio del nodo
+        // Update the height and balance
+        node.height = 1 + Math.max(height(node.left), height(node.right));
         int balance = getBalance(node);
 
-        // Realiza rotaciones para reequilibrar el árbol si es necesario
-        if (balance > 1 && key.compareTo(node.left.key) < 0)
+        // Right rotation
+        if (balance > 1 && data.getWord().compareTo(node.left.data.getWord()) < 0) {
             return rightRotate(node);
+        }
 
-        if (balance < -1 && key.compareTo(node.right.key) > 0)
+        // Left rotation
+        if (balance < -1 && data.getWord().compareTo(node.right.data.getWord()) > 0) {
             return leftRotate(node);
+        }
 
-        if (balance > 1 && key.compareTo(node.left.key) > 0) {
+        // Left-Right rotation
+        if (balance > 1 && data.getWord().compareTo(node.left.data.getWord()) > 0) {
             node.left = leftRotate(node.left);
             return rightRotate(node);
         }
 
-        if (balance < -1 && key.compareTo(node.right.key) < 0) {
+        // Right-Left rotation
+        if (balance < -1 && data.getWord().compareTo(node.right.data.getWord()) < 0) {
             node.right = rightRotate(node.right);
             return leftRotate(node);
         }
 
-        return node; // Retorna el nodo actualizado
+        return node; // Return the updated node
+    }
+    public boolean search(WordData data) {
+        return search(root, data);
     }
 
-    // Método para buscar una clave en el árbol AVL
-    public boolean search(String key) {
-        return search(root, key); // Llama al método de búsqueda recursivo
+    // Recursive method to search for a WordData object
+    private boolean search(AVLNode node, WordData data) {
+        if (node == null) {
+            return false;
+        }
+
+        int comparison = data.getWord().compareTo(node.data.getWord());
+
+        if (comparison == 0) {
+            return true; // If the WordData object matches, return true
+        }
+
+        if (comparison < 0) {
+            return search(node.left, data); // Search in the left subtree
+        } else {
+            return search(node.right, data); // Search in the right subtree
+        }
     }
 
-    // Método recursivo para buscar una clave en el árbol AVL
-    private boolean search(AVLNode node, String key) {
-        if (node == null)
-            return false; // Si el nodo es null, retorna false
 
-        if (key.equals(node.key))
-            return true; // Si la clave coincide, retorna true
 
-        // Busca la clave en el subárbol correspondiente
-        if (key.compareTo(node.key) < 0)
-            return search(node.left, key);
-        else
-            return search(node.right, key);
-    }
 }
-
