@@ -1,6 +1,10 @@
 package org.example.textfinder;
 // Clase para representar un nodo en un Árbol AVL
 
+
+import java.util.ArrayList;
+import java.util.List;
+
 // Clase principal para el Árbol AVL
 public class AVLTree {
     public AVLNode root; // Nodo raíz del árbol AVL
@@ -102,29 +106,53 @@ public class AVLTree {
 
         return node; // Return the updated node
     }
-    public boolean search(WordData data) {
+
+    public WordData search(WordData data) {
         return search(root, data);
     }
 
     // Recursive method to search for a WordData object
-    private boolean search(AVLNode node, WordData data) {
-        if (node == null) {
-            return false;
+    private WordData search(AVLNode node, WordData data) {
+
+        if (node == null || data == null) {
+            return data; // Return null if either the node or data is null
         }
 
-        int comparison = data.getWord().compareTo(node.data.getWord());
+        if (data.getWord().equals(node.data.getWord())) {
 
-        if (comparison == 0) {
-            return true; // If the WordData object matches, return true
+            return node.data;
         }
 
-        if (comparison < 0) {
+        if (data.getWord().compareTo(node.data.getWord()) < 0) {
             return search(node.left, data); // Search in the left subtree
         } else {
             return search(node.right, data); // Search in the right subtree
         }
     }
 
+    public List<WordData> searchAll(WordData word) {
+        List<WordData> results = new ArrayList<>();
+        searchAllHelper(this.root, word, results);
+        return results;
+    }
 
+    // Recursive helper method to traverse the tree and collect matches
+    private void searchAllHelper(AVLNode node, WordData word, List<WordData> results) {
+        if (node == null) {
+            return; // End of branch
+        }
 
+        int comparison = word.getWord().compareTo(node.data.getWord());
+
+        // If words match, add to results
+        if (comparison == 0) {
+            results.add(node.data);
+        }
+
+        // Always search the left subtree
+        searchAllHelper(node.left, word, results);
+
+        // Always search the right subtree
+        searchAllHelper(node.right, word, results);
+    }
 }

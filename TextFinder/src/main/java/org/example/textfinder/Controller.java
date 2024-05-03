@@ -4,6 +4,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 
@@ -23,9 +24,21 @@ public class Controller implements Initializable {
     @FXML
     private ListView<String> fileListView;
     @FXML
+    private ListView<String> wordListView;
+    @FXML
     private ComboBox<String> sortbyBox;
     @FXML
+    private TableView<Elements> tableView;
+    @FXML
+    private TableColumn<Elements, String> firstColumn;
+    @FXML
+    private TableColumn<Elements, String> secondColumn;
+    @FXML
+    private TableColumn<Elements, String> thirdColumn;
+    @FXML
     private TextField searchPane;
+    ArrayList pruebaList = new ArrayList<WordData>();
+    List prueba2List = new ArrayList<WordData>();
 
     List<File> listFiles = new ArrayList<>();
 
@@ -33,6 +46,9 @@ public class Controller implements Initializable {
     private LinkedList ocurrenceList;
     private String[] sortBy = {"nombre del archivo", "fecha de creación", "tamaño"};
     private int position = 0;
+    private int pos = 0;
+    private WordData saveWord;
+
 
 
 
@@ -42,7 +58,13 @@ public class Controller implements Initializable {
         sortbyBox.getItems().addAll(sortBy);
         avlTree = new AVLTree();
         ocurrenceList = new LinkedList();
+        prueba2List = new ArrayList<WordData>();
     }
+
+    public ArrayList getpruebaList() {
+        return pruebaList;
+    }
+
 
     //este sortResultsBy is lo que quiero que pase cuando se selecciona una de las opciones del choiceBox
     public void sortResultsBy(ActionEvent event){
@@ -272,16 +294,62 @@ public class Controller implements Initializable {
     void searchWord(ActionEvent event ) {
         String word = searchPane.getText();
         WordData searchData = new WordData(word, null, 0); // File and position aren't needed for search
+        saveWord = avlTree.search(searchData);
 
-        boolean hasResults = avlTree.search(searchData);
 
-        if (hasResults) {
-            System.out.println("Palabra clave encontrada en el archivo: " + word);
-        } else {
-            System.out.println("Palabra clave no encontrada en el archivo: " + word);
+        showResults();
+        firstColumn.setCellValueFactory(new PropertyValueFactory<Elements, String>("first"));
+        secondColumn.setCellValueFactory(new PropertyValueFactory<Elements, String>("second"));
+        thirdColumn.setCellValueFactory(new PropertyValueFactory<Elements, String>("third"));
+        System.out.println(saveWord.getWord());
+        System.out.println(saveWord.getPosition());
+        System.out.println(saveWord.getFile());
+    }
+
+    //este show results lo que hace es mostrar
+    private void showResults (){
+        for (int i = 0; i < ocurrenceList.size(); i++) {
+            if (saveWord.getFile() == ocurrenceList.info(i).getFile()){
+                System.out.println("SI ES");
+                if(saveWord.getPosition() == ocurrenceList.info(i).getPosition()){
+                    if(saveWord.getPosition() == 0){
+                        wordListView.getItems().add(ocurrenceList.info(i).getWord()+" "+ocurrenceList.info(i+1).getWord()+" "+ocurrenceList.info(i+2).getWord());
+
+                    }else{
+                        wordListView.getItems().add(ocurrenceList.info(i-1).getWord()+" "+ocurrenceList.info(i).getWord()+" "+ocurrenceList.info(i+1).getWord());
+
+                    }
+                    /*for (int u = 0; u < prueba2List.size(); u++) {
+                        wordListView.getItems().add(prueba2List.get(u).toString());
+                    }
+                     */
+                    System.out.println(saveWord.getPosition());
+                }
+            }
+
         }
     }
 
+   /* @FXML
+    void searchWord(ActionEvent event) {
+        String word = searchPane.getText();
+        WordData searchData = new WordData(word, null, 0);
+        List<WordData> searchResults = avlTree.searchAll(searchData);
+
+        if (searchResults.isEmpty()) {
+            System.out.println("No results found.");
+        } else {
+            System.out.println("results:");
+
+            // Iterate over all matches and print details
+            for (WordData result : searchResults) {
+                System.out.println("Word: " + result.getWord());
+                System.out.println("Position: " + result.getPosition()); // Assuming this is part of WordData
+                System.out.println("File: " + result.getFile());         // Assuming this is part of WordData
+            }
+        }
+    }
+    */
     //boton de actualizar
     //TODO: este boton es para cuando se realizan cambios en un archivo y quiero actualizar el file con el que estoy trabajando
     @FXML
@@ -296,6 +364,5 @@ public class Controller implements Initializable {
         for (int i = 0; i < ocurrenceList.size(); i++) {
             System.out.println(ocurrenceList.info(i));
         }
-
     }
 }
