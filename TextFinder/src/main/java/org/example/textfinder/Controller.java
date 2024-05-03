@@ -10,10 +10,7 @@ import javafx.stage.FileChooser;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -33,7 +30,9 @@ public class Controller implements Initializable {
     List<File> listFiles = new ArrayList<>();
 
     private AVLTree avlTree;
+    private LinkedList ocurrenceList;
     private String[] sortBy = {"nombre del archivo", "fecha de creación", "tamaño"};
+    private int position = 0;
 
 
 
@@ -42,6 +41,7 @@ public class Controller implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         sortbyBox.getItems().addAll(sortBy);
         avlTree = new AVLTree();
+        ocurrenceList = new LinkedList();
     }
 
     //este sortResultsBy is lo que quiero que pase cuando se selecciona una de las opciones del choiceBox
@@ -67,7 +67,7 @@ public class Controller implements Initializable {
             } else if (selectedFile.getName().endsWith(".docx")) {
                 fileExtension = "docx";
                 // Llamar a la función para manejar archivos .docx
-                indexDOCXFile(selectedFile);
+                indexDOCXFile(selectedFile);;
             } else if (selectedFile.getName().endsWith(".pdf")) {
                 fileExtension = "pdf";
                 // Llamar a la función para manejar archivos .pdf
@@ -99,8 +99,11 @@ public class Controller implements Initializable {
                 // Normaliza la palabra a minúsculas
                 String normalizedWord = word;
 
-                // Inserta la palabra normalizada en el árbol AVL
-                avlTree.root = avlTree.insert(avlTree.root, normalizedWord);
+                WordData holap = new WordData(normalizedWord, pdfFile, position);
+                ocurrenceList.insert(holap);
+
+                position++;
+                avlTree.root = avlTree.insert(avlTree.root, holap);
             }
         } catch (IOException e) {
             // Maneja la excepción en caso de error al guardar el texto en el árbol
@@ -120,12 +123,17 @@ public class Controller implements Initializable {
             String[] words = extractedText.toString().split("\\s+");
             for (String word : words) {
                 String normalizedWord = word;
-                avlTree.root = avlTree.insert(avlTree.root, normalizedWord);
+                WordData holap = new WordData(normalizedWord, txtFile, position);
+                ocurrenceList.insert(holap);
+
+                position++;
+                avlTree.root = avlTree.insert(avlTree.root, holap);
             }
         } catch (IOException e) {
             System.err.println("Error al guardar el texto en el arbol: " + e.getMessage());
         }
     }
+
 
     // Método para indexar un archivo DOCX en el árbol AVL
     private void indexDOCXFile(File docxFile) {
@@ -137,7 +145,11 @@ public class Controller implements Initializable {
             String[] words = extractedText.split("\\s+");
             for (String word : words) {
                 String normalizedWord = word;
-                avlTree.root = avlTree.insert(avlTree.root, normalizedWord);
+                WordData holap = new WordData(normalizedWord, docxFile, position);
+                ocurrenceList.insert(holap);
+
+                position++;
+                avlTree.root = avlTree.insert(avlTree.root, holap);
             }
         } catch (IOException e) {
             System.err.println("Error al guardar el texto en el arbol: " + e.getMessage());
@@ -259,8 +271,9 @@ public class Controller implements Initializable {
     @FXML
     void searchWord(ActionEvent event ) {
         String word = searchPane.getText();
+        WordData searchData = new WordData(word, null, 0); // File and position aren't needed for search
 
-        boolean hasResults = avlTree.search(word);
+        boolean hasResults = avlTree.search(searchData);
 
         if (hasResults) {
             System.out.println("Palabra clave encontrada en el archivo: " + word);
@@ -280,5 +293,9 @@ public class Controller implements Initializable {
     //no lo ponemos en el initialize para que se haga pq primero se tiene que seleccionar a cuales archivos les quiero hacer eso
     @FXML
     void startIndexing(ActionEvent event) {
+        for (int i = 0; i < ocurrenceList.size(); i++) {
+            System.out.println(ocurrenceList.info(i));
+        }
+
     }
 }
