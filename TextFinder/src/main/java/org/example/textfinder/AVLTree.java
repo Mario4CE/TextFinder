@@ -1,13 +1,16 @@
 package org.example.textfinder;
 // Clase para representar un nodo en un Árbol AVL
 
-
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Comparator;
+
 
 // Clase principal para el Árbol AVL
 public class AVLTree {
-    public AVLNode root; // Nodo raíz del árbol AVL
+    public static AVLNode root; // Nodo raíz del árbol AVL
 
     // Método para obtener la altura de un nodo
     private int height(AVLNode node) {
@@ -63,18 +66,25 @@ public class AVLTree {
     // Método para insertar una clave en el árbol AVL
     public AVLNode insert(AVLNode node, WordData data) {
         if (node == null) {
-            return new AVLNode(data); // If the node is null, create a new one
+            return new AVLNode(data);
         }
 
-        // Comparison logic based on the word in WordData
         int comparison = data.getWord().compareTo(node.data.getWord());
 
         if (comparison < 0) {
-            node.left = insert(node.left, data); // Insert into the left subtree
+            node.left = insert(node.left, data);
         } else if (comparison > 0) {
-            node.right = insert(node.right, data); // Insert into the right subtree
+            node.right = insert(node.right, data);
         } else {
-            // Handle the case where the WordData already exists
+            // Actualizar el conteo de la palabra existente
+            if (node.wordCounts.containsKey(data.getWord())) {
+                // Incrementa el conteo si la palabra ya existe
+                node.wordCounts.put(data.getWord(), new WordCount(data.getWord(), node.wordCounts.get(data.getWord()).getCount() + 1));
+            } else {
+                // Si no existe, crea un nuevo WordCount con conteo inicializado a 1
+                node.wordCounts.put(data.getWord(), new WordCount(data.getWord(), 1));
+            }
+            node.wordList.add(data);
             return node;
         }
 
@@ -107,52 +117,44 @@ public class AVLTree {
         return node; // Return the updated node
     }
 
-    public WordData search(WordData data) {
-        return search(root, data);
-    }
-
     // Recursive method to search for a WordData object
-    private WordData search(AVLNode node, WordData data) {
+    public List<WordData> search(String wordToSearch) {
+        return search(root, wordToSearch);
+    }
 
-        if (node == null || data == null) {
-            return data; // Return null if either the node or data is null
+    private List<WordData> search(AVLNode node, String wordToSearch) {
+        if (node == null) {
+            return Collections.emptyList(); // Devuelve una lista vacía si el nodo es null
         }
 
-        if (data.getWord().equals(node.data.getWord())) {
-
-            return node.data;
+        if (wordToSearch.equals(node.data.getWord())) {
+            return node.wordList; // Devuelve la lista de WordData si la palabra coincide
         }
 
-        if (data.getWord().compareTo(node.data.getWord()) < 0) {
-            return search(node.left, data); // Search in the left subtree
+        if (wordToSearch.compareTo(node.data.getWord()) < 0) {
+            return search(node.left, wordToSearch); // Buscar en el subárbol izquierdo
         } else {
-            return search(node.right, data); // Search in the right subtree
+            return search(node.right, wordToSearch); // Buscar en el subárbol derecho
         }
     }
 
-    public List<WordData> searchAll(WordData word) {
+
+    public List<WordData> searchAll(String wordToSearch) {
         List<WordData> results = new ArrayList<>();
-        searchAllHelper(this.root, word, results);
+        searchAllHelper(root, wordToSearch, results);
         return results;
     }
 
-    // Recursive helper method to traverse the tree and collect matches
-    private void searchAllHelper(AVLNode node, WordData word, List<WordData> results) {
+    private void searchAllHelper(AVLNode node, String wordToSearch, List<WordData> results) {
         if (node == null) {
-            return; // End of branch
+            return;
         }
 
-        int comparison = word.getWord().compareTo(node.data.getWord());
-
-        // If words match, add to results
-        if (comparison == 0) {
+        if (node.data.getWord().equals(wordToSearch)) {
             results.add(node.data);
         }
 
-        // Always search the left subtree
-        searchAllHelper(node.left, word, results);
-
-        // Always search the right subtree
-        searchAllHelper(node.right, word, results);
+        searchAllHelper(node.left, wordToSearch, results);
+        searchAllHelper(node.right, wordToSearch, results);
     }
 }

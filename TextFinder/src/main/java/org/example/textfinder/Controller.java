@@ -7,17 +7,14 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
-
+import java.nio.file.Path;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.*;
+import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 
-import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 
 public class Controller implements Initializable {
 
@@ -37,8 +34,6 @@ public class Controller implements Initializable {
     private TableColumn<Elements, String> thirdColumn;
     @FXML
     private TextField searchPane;
-    ArrayList pruebaList = new ArrayList<WordData>();
-    List prueba2List = new ArrayList<WordData>();
 
     List<File> listFiles = new ArrayList<>();
 
@@ -48,9 +43,7 @@ public class Controller implements Initializable {
     private int position = 0;
     private int pos = 0;
     private WordData saveWord;
-
-
-
+    private FileProcessor fileProcessor;
 
     //aquí se pone toda la logica con lo que se necesita cuando apenas se inicia la aplicación
     @Override
@@ -58,11 +51,9 @@ public class Controller implements Initializable {
         sortbyBox.getItems().addAll(sortBy);
         avlTree = new AVLTree();
         ocurrenceList = new LinkedList();
-        prueba2List = new ArrayList<WordData>();
-    }
-
-    public ArrayList getpruebaList() {
-        return pruebaList;
+        listFiles = new ArrayList<>();
+        fileListView = new ListView<>();
+        fileProcessor = new FileProcessor(avlTree, ocurrenceList);
     }
 
 
@@ -75,196 +66,75 @@ public class Controller implements Initializable {
 
     //boton para añadir un file
     @FXML
-    //Funcion que agrega documentos uno a uno
     void addFile(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
         File selectedFile = fileChooser.showOpenDialog(null);
 
-        if (selectedFile != null) {
+        if (selectedFile!= null) {
             String fileExtension = "";
             if (selectedFile.getName().endsWith(".txt")) {
                 fileExtension = "txt";
-                // Llamar a la función para manejar archivos .txt
-                indexTXTFile(selectedFile);
             } else if (selectedFile.getName().endsWith(".docx")) {
                 fileExtension = "docx";
-                // Llamar a la función para manejar archivos .docx
-                indexDOCXFile(selectedFile);;
             } else if (selectedFile.getName().endsWith(".pdf")) {
                 fileExtension = "pdf";
-                // Llamar a la función para manejar archivos .pdf
-                indexPDFFile(selectedFile);
             } else {
                 System.out.println("File type not supported");
-                return; // Evita agregar el archivo si no es soportado
+                return;
             }
 
-            // Añadir el archivo a la lista para su uso posterior solo si es soportado
             listFiles.add(selectedFile);
             fileListView.getItems().add(selectedFile.getName());
-        } else {
-            System.out.println("File not valid");
-        }
-    }
 
-    // Método para indexar un archivo PDF en el árbol AVL
-    private void indexPDFFile(File pdfFile) {
-        try {
-            // Extrae el texto del archivo PDF
-            String extractedText = extractText(pdfFile);
-
-            // Divide el texto extraído en palabras
-            String[] words = extractedText.split("\\s+");
-
-            // Itera sobre cada palabra
-            for (String word: words) {
-                // Normaliza la palabra a minúsculas
-                String normalizedWord = word;
-
-                WordData holap = new WordData(normalizedWord, pdfFile, position);
-                ocurrenceList.insert(holap);
-
-                position++;
-                avlTree.root = avlTree.insert(avlTree.root, holap);
+            FileProcessor fileProcessor = new FileProcessor(avlTree, ocurrenceList);
+            try {
+                fileProcessor.processFile(selectedFile, fileExtension);
+            } catch (IOException e) {
+                System.err.println("Error al procesar el archivo: " + e.getMessage());
             }
-        } catch (IOException e) {
-            // Maneja la excepción en caso de error al guardar el texto en el árbol
-            System.err.println("Error al guardar el texto en el arbol: " + e.getMessage());
         }
-    }
-
-    // Método para indexar un archivo TXT en el árbol AVL
-    private void indexTXTFile(File txtFile) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(txtFile))) {
-            StringBuilder extractedText = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                extractedText.append(line).append(" ");
-            }
-
-            String[] words = extractedText.toString().split("\\s+");
-            for (String word : words) {
-                String normalizedWord = word;
-                WordData holap = new WordData(normalizedWord, txtFile, position);
-                ocurrenceList.insert(holap);
-
-                position++;
-                avlTree.root = avlTree.insert(avlTree.root, holap);
-            }
-        } catch (IOException e) {
-            System.err.println("Error al guardar el texto en el arbol: " + e.getMessage());
-        }
-    }
-
-
-    // Método para indexar un archivo DOCX en el árbol AVL
-    private void indexDOCXFile(File docxFile) {
-        try (FileInputStream fis = new FileInputStream(docxFile);
-             XWPFDocument document = new XWPFDocument(fis);
-             XWPFWordExtractor extractor = new XWPFWordExtractor(document)) {
-
-            String extractedText = extractor.getText();
-            String[] words = extractedText.split("\\s+");
-            for (String word : words) {
-                String normalizedWord = word;
-                WordData holap = new WordData(normalizedWord, docxFile, position);
-                ocurrenceList.insert(holap);
-
-                position++;
-                avlTree.root = avlTree.insert(avlTree.root, holap);
-            }
-        } catch (IOException e) {
-            System.err.println("Error al guardar el texto en el arbol: " + e.getMessage());
-        }
-    }
-
-    // Método para extraer texto de un archivo PDF, TXT, DOCX
-    private String extractText(File file) throws IOException {
-        String extractedText = ""; // Inicializa la variable para almacenar el texto extraído
-
-        // Determina el tipo de archivo basado en la extensión
-        String fileExtension = "";
-        if (file.getName().lastIndexOf(".") != -1) {
-            fileExtension = file.getName().substring(file.getName().lastIndexOf(".") + 1);
-        }
-
-        try {
-            switch (fileExtension) {
-                case "pdf":
-                    // Carga el documento PDF
-                    try (PDDocument document = Loader.loadPDF(file)) {
-                        PDFTextStripper textStripper = new PDFTextStripper(); // Crea un objeto para extraer texto
-                        extractedText = textStripper.getText(document); // Extrae el texto del documento
-                    }
-                    break;
-                case "txt":
-                    // Lee el archivo de texto
-                    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                        StringBuilder text = new StringBuilder();
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            text.append(line).append("\n");
-                        }
-                        extractedText = text.toString();
-                    }
-                    break;
-                case "docx":
-                    // Carga el documento Word
-                    try (FileInputStream fis = new FileInputStream(file);
-                         XWPFDocument docxDocument = new XWPFDocument(fis);
-                         XWPFWordExtractor extractor = new XWPFWordExtractor(docxDocument)) {
-                        extractedText = extractor.getText();
-                    }
-                    break;
-                default:
-                    System.err.println("Tipo de archivo no soportado: " + fileExtension);
-                    break;
-            }
-        } catch (IOException e) {
-            // Maneja la excepción en caso de error al leer el archivo
-            System.err.println("Error al leer el archivo: " + e.getMessage());
-        }
-
-        return extractedText; // Retorna el texto extraído
     }
 
     //boton para añadir carpetas
     @FXML
-    //Funcion que agrega una carpeta de documentos
-    void addDir(ActionEvent event) {
+// Función que agrega una carpeta de documentos
+    public void addDir(ActionEvent event) {
         DirectoryChooser directoryChooser = new DirectoryChooser();
         File selectedDirectory = directoryChooser.showDialog(null);
 
-        if (selectedDirectory != null) {
-            var startDir = selectedDirectory.toPath();
+        if (selectedDirectory!= null) {
+            Path startDir = selectedDirectory.toPath();
 
             try {
-                // Filtrar para incluir solo archivos .pdf, .txt, y .docx
                 Files.walk(startDir)
                         .filter(path -> {
                             String fileName = path.getFileName().toString();
                             return fileName.endsWith(".pdf") || fileName.endsWith(".txt") || fileName.endsWith(".docx");
                         })
                         .forEach(dir -> {
-                            // Añadir el archivo a la lista para su uso posterior
-                            listFiles.add(dir.toFile());
-                            fileListView.getItems().add(dir.getFileName().toString());
+                            File file = dir.toFile();
+                            listFiles.add(file);
+                            fileListView.getItems().add(file.getName());
+                            String fileType = file.getName().substring(file.getName().lastIndexOf(".") + 1);
 
-                            // Llamar a la función apropiada basada en el tipo de archivo
-                            if (dir.getFileName().toString().endsWith(".txt")) {
-                                indexTXTFile(dir.toFile());
-                            } else if (dir.getFileName().toString().endsWith(".docx")) {
-                                indexDOCXFile(dir.toFile());
-                            } else if (dir.getFileName().toString().endsWith(".pdf")) {
-                                indexPDFFile(dir.toFile());
+                            if (fileProcessor!= null) {
+                                try {
+                                    fileProcessor.processFile(file, fileType);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            } else {
+                                System.out.println("fileProcessor es null");
                             }
                         });
+            } catch (NoSuchFileException | UnsupportedOperationException e) {
+                // Manejar excepciones específicas
+                System.err.println("Error al recorrer el directorio: " + e.getMessage());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
     }
-
 
     //boton para eliminar un file
     @FXML
@@ -291,65 +161,40 @@ public class Controller implements Initializable {
 
     //boton search
     @FXML
-    void searchWord(ActionEvent event ) {
-        String word = searchPane.getText();
-        WordData searchData = new WordData(word, null, 0); // File and position aren't needed for search
-        saveWord = avlTree.search(searchData);
+    void searchWord(ActionEvent event) {
+        String wordToSearch = searchPane.getText();
+        List<WordData> searchResults = avlTree.searchAll(wordToSearch);
 
-
-        showResults();
-        firstColumn.setCellValueFactory(new PropertyValueFactory<Elements, String>("first"));
-        secondColumn.setCellValueFactory(new PropertyValueFactory<Elements, String>("second"));
-        thirdColumn.setCellValueFactory(new PropertyValueFactory<Elements, String>("third"));
-        System.out.println(saveWord.getWord());
-        System.out.println(saveWord.getPosition());
-        System.out.println(saveWord.getFile());
+        if (searchResults.isEmpty()) {
+            System.out.println("No results found for: " + wordToSearch);
+        } else {
+            System.out.println("Results for: " + wordToSearch);
+            for (WordData result : searchResults) {
+                System.out.println("Word: " + result.getWord() + ", Count: " + result.getCount());
+            }
+            // Llama a showResults para actualizar la interfaz de usuario con los resultados de la búsqueda
+            showResults(searchResults);
+        }
     }
-
     //este show results lo que hace es mostrar
-    private void showResults (){
+    private void showResults(List<WordData> searchResults) {
+        wordListView.getItems().clear(); // Limpiar la lista de palabras antes de agregar nuevos resultados
         for (int i = 0; i < ocurrenceList.size(); i++) {
-            if (saveWord.getFile() == ocurrenceList.info(i).getFile()){
-                System.out.println("SI ES");
-                if(saveWord.getPosition() == ocurrenceList.info(i).getPosition()){
-                    if(saveWord.getPosition() == 0){
-                        wordListView.getItems().add(ocurrenceList.info(i).getWord()+" "+ocurrenceList.info(i+1).getWord()+" "+ocurrenceList.info(i+2).getWord());
-
-                    }else{
-                        wordListView.getItems().add(ocurrenceList.info(i-1).getWord()+" "+ocurrenceList.info(i).getWord()+" "+ocurrenceList.info(i+1).getWord());
-
+            if (saveWord.getFile() == ocurrenceList.info(i).getFile()) {
+                if (saveWord.getPosition() == ocurrenceList.info(i).getPosition()) {
+                    // Verifica si estamos en la primera posición para evitar índice fuera de rango
+                    if (i > 0) {
+                        wordListView.getItems().add(ocurrenceList.info(i - 1).getWord() + " " + ocurrenceList.info(i).getWord() + " " + ocurrenceList.info(i + 1).getWord());
+                    } else {
+                        // Manejo especial para la primera posición
+                        wordListView.getItems().add(ocurrenceList.info(i).getWord() + " " + ocurrenceList.info(i + 1).getWord() + " " + ocurrenceList.info(i + 2).getWord());
                     }
-                    /*for (int u = 0; u < prueba2List.size(); u++) {
-                        wordListView.getItems().add(prueba2List.get(u).toString());
-                    }
-                     */
                     System.out.println(saveWord.getPosition());
                 }
             }
-
         }
     }
 
-   /* @FXML
-    void searchWord(ActionEvent event) {
-        String word = searchPane.getText();
-        WordData searchData = new WordData(word, null, 0);
-        List<WordData> searchResults = avlTree.searchAll(searchData);
-
-        if (searchResults.isEmpty()) {
-            System.out.println("No results found.");
-        } else {
-            System.out.println("results:");
-
-            // Iterate over all matches and print details
-            for (WordData result : searchResults) {
-                System.out.println("Word: " + result.getWord());
-                System.out.println("Position: " + result.getPosition()); // Assuming this is part of WordData
-                System.out.println("File: " + result.getFile());         // Assuming this is part of WordData
-            }
-        }
-    }
-    */
     //boton de actualizar
     //TODO: este boton es para cuando se realizan cambios en un archivo y quiero actualizar el file con el que estoy trabajando
     @FXML
