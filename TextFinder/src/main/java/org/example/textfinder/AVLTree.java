@@ -1,12 +1,11 @@
 package org.example.textfinder;
 // Clase para representar un nodo en un Árbol AVL
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import java.lang.String;
+
 
 
 // Clase principal para el Árbol AVL
@@ -130,7 +129,6 @@ public class AVLTree {
         }
     }
 
-
     public List<WordData> searchAll(String wordToSearch) {
         List<WordData> results = new ArrayList<>();
         searchAllHelper(root, wordToSearch, results);
@@ -143,14 +141,27 @@ public class AVLTree {
         }
 
         if (node.data.getWord().equals(wordToSearch)) {
-            // Solo agregamos el primer nodo que coincide con la palabra buscada
             results.add(node.data);
-            return; // Salimos de la función después de encontrar el primer nodo
         }
 
-        // Continuamos la búsqueda en los subárboles izquierdo y derecho
         searchAllHelper(node.left, wordToSearch, results);
         searchAllHelper(node.right, wordToSearch, results);
     }
 
+    // Método para imprimir el árbol AVL de manera recursiva
+    public void printTree(AVLNode node, String indent) {
+        if (node!= null) {
+            System.out.println(indent + "Nodo: " + node.data.getWord() + ", Altura: " + node.height);
+            printTree(node.left, indent + "  "); // Imprime el subárbol izquierdo
+            printTree(node.right, indent + "  "); // Imprime el subárbol derecho
+        }
+    }
+
+    public void printTree(AVLNode node) {
+        printTree(node, "");
+    }
+
+    public boolean isTreeEmpty() {
+        return root == null;
+    }
 }

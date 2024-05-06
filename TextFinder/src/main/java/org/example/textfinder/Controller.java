@@ -1,11 +1,9 @@
 package org.example.textfinder;
 
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import java.nio.file.Path;
@@ -15,7 +13,6 @@ import java.nio.file.Files;
 import java.util.*;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
-
 
 public class Controller implements Initializable {
 
@@ -173,20 +170,29 @@ public class Controller implements Initializable {
     @FXML
     void searchWord(ActionEvent event) {
         String wordToSearch = searchPane.getText();
-        List<WordData> searchResults = avlTree.searchAll(wordToSearch);
+        List<WordData> searchResults = new ArrayList<>();
+
+        // Verifica si el árbol está vacío
+        if (avlTree.isTreeEmpty()) {
+            System.out.println("El árbol está vacío. No hay palabras para buscar.");
+            return; // Termina el método si el árbol está vacío
+        }
+
+        // Realiza la búsqueda
+        searchResults = avlTree.searchAll(wordToSearch);
 
         // Verifica si la palabra existe en el árbol
         if (!searchResults.isEmpty()) {
             System.out.println("La palabra '" + wordToSearch + "' fue encontrada en el árbol.");
-            ResultDisplay.printResults(searchResults);
+            // Aquí puedes manejar los resultados encontrados, por ejemplo, mostrándolos en la UI
         } else if (wordToSearch!= null &&!wordToSearch.trim().isEmpty()) {
-            // Aquí puedes añadir lógica específica para cuando la palabra no está en el árbol
-            // Por ejemplo, podrías mostrar un mensaje de error personalizado o realizar alguna acción
+            // Si la palabra no se encuentra, imprime un mensaje indicando que no se encontró
             System.out.println("La palabra '" + wordToSearch + "' no fue encontrada en el árbol. Por favor, verifica la ortografía y vuelve a intentarlo.");
         } else {
             System.out.println("No se ingresó ninguna palabra para buscar.");
         }
     }
+
 
 
     //boton de actualizar

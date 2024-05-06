@@ -51,6 +51,7 @@ public class FileProcessor {
                 } else {
                     System.out.println("Palabra duplicada: " + normalizedWord); // Registro de depuración
                 }
+
             }
         } catch (IOException e) {
             System.err.println("Error al guardar el texto en el arbol: " + e.getMessage());
