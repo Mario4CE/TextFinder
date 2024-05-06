@@ -48,6 +48,7 @@ public class Controller implements Initializable {
     private int position = 0;
     private int pos = 0;
     private WordData saveWord;
+    private List<WordData> searchResults;
 
 
 
@@ -294,17 +295,26 @@ public class Controller implements Initializable {
     void searchWord(ActionEvent event ) {
         String word = searchPane.getText();
         WordData searchData = new WordData(word, null, 0); // File and position aren't needed for search
-        saveWord = avlTree.search(searchData);
+        searchResults = avlTree.searchAll(searchData);
 
+        if (avlTree.isTreeEmpty()) {
+            System.out.println("El árbol está vacío. No hay palabras para buscar.");
+            return; // Termina el método si el árbol está vacío
+        }
 
-        showResults();
-        firstColumn.setCellValueFactory(new PropertyValueFactory<Elements, String>("first"));
-        secondColumn.setCellValueFactory(new PropertyValueFactory<Elements, String>("second"));
-        thirdColumn.setCellValueFactory(new PropertyValueFactory<Elements, String>("third"));
-        System.out.println(saveWord.getWord());
-        System.out.println(saveWord.getPosition());
-        System.out.println(saveWord.getFile());
+        if (!searchResults.isEmpty()) {
+            for (int i = 0; i < searchResults.size(); i++) {
+                System.out.println(searchResults.get(i).getWord());
+                System.out.println(searchResults.get(i).getFile());
+
+            }
+
+        } else {
+            System.out.println("No se ingresó ninguna palabra para buscar.");
+        }
+
     }
+
 
     //este show results lo que hace es mostrar
     private void showResults (){

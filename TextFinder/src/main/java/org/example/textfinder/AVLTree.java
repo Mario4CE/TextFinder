@@ -59,52 +59,57 @@ public class AVLTree {
             return 0; // Si el nodo es null, retorna 0
         return height(node.left) - height(node.right); // Retorna la diferencia entre las alturas de los hijos izquierdo y derecho
     }
+    public boolean isTreeEmpty() {
+        return root == null;
+    }
 
     // Método para insertar una clave en el árbol AVL
     public AVLNode insert(AVLNode node, WordData data) {
         if (node == null) {
-            return new AVLNode(data); // If the node is null, create a new one
+            return new AVLNode(data);
         }
 
-        // Comparison logic based on the word in WordData
         int comparison = data.getWord().compareTo(node.data.getWord());
 
         if (comparison < 0) {
-            node.left = insert(node.left, data); // Insert into the left subtree
+            node.left = insert(node.left, data);
         } else if (comparison > 0) {
-            node.right = insert(node.right, data); // Insert into the right subtree
+            node.right = insert(node.right, data);
         } else {
-            // Handle the case where the WordData already exists
-            return node;
+            // La palabra ya existe en el nodo, actualizamos el conteo
+            node.data.incrementWordCount(); // Incrementar el conteo de la palabra existente
+            return node; // Retornamos sin necesidad de hacer rotaciones
         }
 
-        // Update the height and balance
+        // Actualizamos la altura y obtenemos el balance del nodo
         node.height = 1 + Math.max(height(node.left), height(node.right));
         int balance = getBalance(node);
 
-        // Right rotation
+        // Verificamos si el árbol está desequilibrado y aplicamos las rotaciones necesarias
+
+        // Rotación izquierda-izquierda
         if (balance > 1 && data.getWord().compareTo(node.left.data.getWord()) < 0) {
             return rightRotate(node);
         }
 
-        // Left rotation
+        // Rotación derecha-derecha
         if (balance < -1 && data.getWord().compareTo(node.right.data.getWord()) > 0) {
             return leftRotate(node);
         }
 
-        // Left-Right rotation
+        // Rotación izquierda-derecha
         if (balance > 1 && data.getWord().compareTo(node.left.data.getWord()) > 0) {
             node.left = leftRotate(node.left);
             return rightRotate(node);
         }
 
-        // Right-Left rotation
+        // Rotación derecha-izquierda
         if (balance < -1 && data.getWord().compareTo(node.right.data.getWord()) < 0) {
             node.right = rightRotate(node.right);
             return leftRotate(node);
         }
 
-        return node; // Return the updated node
+        return node; // Retornamos el nodo actualizado
     }
 
     public WordData search(WordData data) {
@@ -130,29 +135,26 @@ public class AVLTree {
         }
     }
 
-    public List<WordData> searchAll(WordData word) {
+    public List<WordData> searchAll(WordData wordToSearch) {
         List<WordData> results = new ArrayList<>();
-        searchAllHelper(this.root, word, results);
-        return results;
+
+        return searchAllHelper(root, wordToSearch, results);
     }
 
-    // Recursive helper method to traverse the tree and collect matches
-    private void searchAllHelper(AVLNode node, WordData word, List<WordData> results) {
-        if (node == null) {
-            return; // End of branch
+    private List<WordData> searchAllHelper(AVLNode node, WordData wordToSearch, List<WordData> results) {
+        if (node == null || wordToSearch == null) {
+            return results; // If node or wordToSearch is null, return the results collected so far
         }
 
-        int comparison = word.getWord().compareTo(node.data.getWord());
-
-        // If words match, add to results
-        if (comparison == 0) {
-            results.add(node.data);
+        // Check if the current node matches the wordToSearch
+        if (node.data.getWord().equals(wordToSearch.getWord())) {
+            results.add(node.data); // Add the matching node to the results
         }
 
-        // Always search the left subtree
-        searchAllHelper(node.left, word, results);
+        // Continue searching in both left and right subtrees
+        searchAllHelper(node.left, wordToSearch, results);
+        searchAllHelper(node.right, wordToSearch, results);
 
-        // Always search the right subtree
-        searchAllHelper(node.right, word, results);
+        return results; // Return the collected results
     }
 }

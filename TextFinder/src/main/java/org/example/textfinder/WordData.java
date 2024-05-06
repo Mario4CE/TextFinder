@@ -6,12 +6,14 @@ public class WordData {
     private File file;
     private Integer position = 0;
     private String word;
+    private int count;
 
     //constructor
     public WordData(String word, File file, Integer position) {
         this.word = word;
         this.file = file;
         this.position = position;
+        this.count = 0;
     }
 
     //getters and setters
@@ -35,6 +37,12 @@ public class WordData {
     }
     public void setWord(String word) {
         this.word = word;
+    }
+    public int getCount() {
+        return count;
+    }
+    public void incrementWordCount() {
+        count++; // Incrementa el conteo de la palabra
     }
 
 }
