@@ -5,7 +5,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Comparator;
+import java.util.Map;
+import java.util.HashMap;
 
 
 // Clase principal para el Árbol AVL
@@ -63,7 +64,6 @@ public class AVLTree {
         return height(node.left) - height(node.right); // Retorna la diferencia entre las alturas de los hijos izquierdo y derecho
     }
 
-    // Método para insertar una clave en el árbol AVL
     public AVLNode insert(AVLNode node, WordData data) {
         if (node == null) {
             return new AVLNode(data);
@@ -76,46 +76,38 @@ public class AVLTree {
         } else if (comparison > 0) {
             node.right = insert(node.right, data);
         } else {
-            // Actualizar el conteo de la palabra existente
-            if (node.wordCounts.containsKey(data.getWord())) {
-                // Incrementa el conteo si la palabra ya existe
-                node.wordCounts.put(data.getWord(), new WordCount(data.getWord(), node.wordCounts.get(data.getWord()).getCount() + 1));
-            } else {
-                // Si no existe, crea un nuevo WordCount con conteo inicializado a 1
-                node.wordCounts.put(data.getWord(), new WordCount(data.getWord(), 1));
-            }
-            node.wordList.add(data);
-            return node;
+            // La palabra ya existe en el nodo, así que actualizamos el conteo y agregamos la nueva información
+            node.data.incrementWordCount(data.getWord()); // Actualizamos el conteo de la palabra existente
+            node.data.addWord(data.getWord()); // Agregamos la nueva información a la lista de palabras
+            return node; // No necesitamos hacer ninguna rotación porque el árbol ya está equilibrado
         }
 
-        // Update the height and balance
+        // Actualizamos la altura y el balance del nodo
         node.height = 1 + Math.max(height(node.left), height(node.right));
         int balance = getBalance(node);
 
-        // Right rotation
+        // Realizamos las rotaciones necesarias para mantener el árbol equilibrado
         if (balance > 1 && data.getWord().compareTo(node.left.data.getWord()) < 0) {
             return rightRotate(node);
         }
 
-        // Left rotation
         if (balance < -1 && data.getWord().compareTo(node.right.data.getWord()) > 0) {
             return leftRotate(node);
         }
 
-        // Left-Right rotation
         if (balance > 1 && data.getWord().compareTo(node.left.data.getWord()) > 0) {
             node.left = leftRotate(node.left);
             return rightRotate(node);
         }
 
-        // Right-Left rotation
         if (balance < -1 && data.getWord().compareTo(node.right.data.getWord()) < 0) {
             node.right = rightRotate(node.right);
             return leftRotate(node);
         }
 
-        return node; // Return the updated node
+        return node; // Retornamos el nodo actualizado
     }
+
 
     // Recursive method to search for a WordData object
     public List<WordData> search(String wordToSearch) {
@@ -151,10 +143,14 @@ public class AVLTree {
         }
 
         if (node.data.getWord().equals(wordToSearch)) {
+            // Solo agregamos el primer nodo que coincide con la palabra buscada
             results.add(node.data);
+            return; // Salimos de la función después de encontrar el primer nodo
         }
 
+        // Continuamos la búsqueda en los subárboles izquierdo y derecho
         searchAllHelper(node.left, wordToSearch, results);
         searchAllHelper(node.right, wordToSearch, results);
     }
+
 }
