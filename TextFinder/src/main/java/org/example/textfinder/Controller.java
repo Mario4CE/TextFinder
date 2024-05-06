@@ -179,10 +179,15 @@ public class Controller implements Initializable {
         if (!searchResults.isEmpty()) {
             System.out.println("La palabra '" + wordToSearch + "' fue encontrada en el árbol.");
             ResultDisplay.printResults(searchResults);
+        } else if (wordToSearch!= null &&!wordToSearch.trim().isEmpty()) {
+            // Aquí puedes añadir lógica específica para cuando la palabra no está en el árbol
+            // Por ejemplo, podrías mostrar un mensaje de error personalizado o realizar alguna acción
+            System.out.println("La palabra '" + wordToSearch + "' no fue encontrada en el árbol. Por favor, verifica la ortografía y vuelve a intentarlo.");
         } else {
-            System.out.println("La palabra '" + wordToSearch + "' no fue encontrada en el árbol.");
+            System.out.println("No se ingresó ninguna palabra para buscar.");
         }
     }
+
 
     //boton de actualizar
     //TODO: este boton es para cuando se realizan cambios en un archivo y quiero actualizar el file con el que estoy trabajando
