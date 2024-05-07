@@ -42,10 +42,10 @@ public class FileProcessor {
             String[] words = extractedText.split("\\s+");
 
             for (String word : words) {
-                String normalizedWord = word.toLowerCase();
+                String normalizedWord = word;
                 if (!occurrenceList.contains(normalizedWord)) {
                     occurrenceList.add(normalizedWord);
-                    avlTree.insert(avlTree.root, new WordData(normalizedWord, pdfFile, position));
+                    avlTree.root = avlTree.insert(avlTree.root, new WordData(normalizedWord, pdfFile, position));
                     position++;
                     System.out.println("Palabra añadida: " + normalizedWord); // Registro de depuración
                 } else {
@@ -68,10 +68,10 @@ public class FileProcessor {
 
             String[] words = extractedText.toString().split("\\s+");
             for (String word : words) {
-                String normalizedWord = word.toLowerCase();
+                String normalizedWord = word;
                 if (!occurrenceList.contains(normalizedWord)) {
                     occurrenceList.add(normalizedWord);
-                    avlTree.insert(avlTree.root, new WordData(normalizedWord, txtFile, position));
+                    avlTree.root = avlTree.insert(avlTree.root, new WordData(normalizedWord, txtFile, position));
                     position++;
                     System.out.println("Palabra añadida: " + normalizedWord); // Registro de depuración
                 } else {
@@ -92,10 +92,10 @@ public class FileProcessor {
             String[] words = extractedText.split("\\s+");
 
             for (String word : words) {
-                String normalizedWord = word.toLowerCase();
+                String normalizedWord = word;
                 if (!occurrenceList.contains(normalizedWord)) {
                     occurrenceList.add(normalizedWord);
-                    avlTree.insert(avlTree.root, new WordData(normalizedWord, docxFile, position));
+                    avlTree.root = avlTree.insert(avlTree.root, new WordData(normalizedWord, docxFile, position));
                     position++;
                     System.out.println("Palabra añadida: " + normalizedWord); // Registro de depuración
                 } else {

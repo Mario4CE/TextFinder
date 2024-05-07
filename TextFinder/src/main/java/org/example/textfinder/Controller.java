@@ -42,7 +42,7 @@ public class Controller implements Initializable {
     private int pos = 0;
     private WordData saveWord;
     private FileProcessor fileProcessor;
-    private ResultDisplay resultDisplay;
+    private SearchService searchService;
 
     //aquí se pone toda la logica con lo que se necesita cuando apenas se inicia la aplicación
     @Override
@@ -53,7 +53,7 @@ public class Controller implements Initializable {
         listFiles = new ArrayList<>();
         fileListView = new ListView<>();
         fileProcessor = new FileProcessor(avlTree, ocurrenceList);
-        resultDisplay = new ResultDisplay();
+        searchService = new SearchService(avlTree);
     }
 
     //este sortResultsBy is lo que quiero que pase cuando se selecciona una de las opciones del choiceBox
@@ -170,30 +170,13 @@ public class Controller implements Initializable {
     @FXML
     void searchWord(ActionEvent event) {
         String wordToSearch = searchPane.getText();
-        List<WordData> searchResults = new ArrayList<>();
+        boolean isValid = searchService.searchAndValidate(wordToSearch);
 
-        // Verifica si el árbol está vacío
-        if (avlTree.isTreeEmpty()) {
-            System.out.println("El árbol está vacío. No hay palabras para buscar.");
-            return; // Termina el método si el árbol está vacío
-        }
-
-        // Realiza la búsqueda
-        searchResults = avlTree.searchAll(wordToSearch);
-
-        // Verifica si la palabra existe en el árbol
-        if (!searchResults.isEmpty()) {
-            System.out.println("La palabra '" + wordToSearch + "' fue encontrada en el árbol.");
-            // Aquí puedes manejar los resultados encontrados, por ejemplo, mostrándolos en la UI
-        } else if (wordToSearch!= null &&!wordToSearch.trim().isEmpty()) {
-            // Si la palabra no se encuentra, imprime un mensaje indicando que no se encontró
-            System.out.println("La palabra '" + wordToSearch + "' no fue encontrada en el árbol. Por favor, verifica la ortografía y vuelve a intentarlo.");
-        } else {
-            System.out.println("No se ingresó ninguna palabra para buscar.");
+        if (isValid) {
+            // Si la búsqueda fue exitosa, limpia el campo de búsqueda
+            searchPane.setText("");
         }
     }
-
-
 
     //boton de actualizar
     //TODO: este boton es para cuando se realizan cambios en un archivo y quiero actualizar el file con el que estoy trabajando
