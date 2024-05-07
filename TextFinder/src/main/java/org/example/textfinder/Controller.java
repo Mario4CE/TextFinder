@@ -43,6 +43,8 @@ public class Controller implements Initializable {
     private WordData saveWord;
     private FileProcessor fileProcessor;
     private SearchService searchService;
+    List<WordData> searchResults;
+
 
     //aquí se pone toda la logica con lo que se necesita cuando apenas se inicia la aplicación
     @Override
@@ -51,9 +53,9 @@ public class Controller implements Initializable {
         avlTree = new AVLTree();
         ocurrenceList = new HashSet<>(); // Usar HashSet para evitar duplicados
         listFiles = new ArrayList<>();
-        fileListView = new ListView<>();
         fileProcessor = new FileProcessor(avlTree, ocurrenceList);
         searchService = new SearchService(avlTree);
+
     }
 
     //este sortResultsBy is lo que quiero que pase cuando se selecciona una de las opciones del choiceBox
@@ -76,13 +78,13 @@ public class Controller implements Initializable {
                 System.out.println("File type not supported");
                 return;
             }
-
             listFiles.add(selectedFile);
-            fileListView.getItems().add(selectedFile.getName());
 
             FileProcessor fileProcessor = new FileProcessor(avlTree, new HashSet<>()); // Crear un nuevo Set para ocurrenceList
             try {
                 fileProcessor.processFile(selectedFile, fileExtension);
+                fileListView.getItems().add(selectedFile.getName());
+
             } catch (IOException e) {
                 System.err.println("Error al procesar el archivo: " + e.getMessage());
             }
@@ -170,18 +172,38 @@ public class Controller implements Initializable {
     @FXML
     void searchWord(ActionEvent event) {
         String wordToSearch = searchPane.getText();
-        boolean isValid = searchService.searchAndValidate(wordToSearch);
+        WordData searchData = new WordData(wordToSearch, null, 0);
+        searchResults = avlTree.searchAll(searchData);
+        //boolean isValid = searchService.searchAndValidate(wordToSearch);
+        if (avlTree.isTreeEmpty()) {
+            System.out.println("El árbol está vacío. No hay palabras para buscar.");
+            return ;
+        }
+        if (!searchResults.isEmpty()) {
+            for (int i = 0; i < searchResults.size(); i++){
+                System.out.println(searchResults.get(i).getWordList());
 
-        if (isValid) {
+            }
+        }else{
+            System.out.println("Está vacía la lista ");
+        }
+
+
+        /*if (isValid) {
             // Si la búsqueda fue exitosa, limpia el campo de búsqueda
             searchPane.setText("");
         }
+
+         */
     }
 
     //boton de actualizar
     //TODO: este boton es para cuando se realizan cambios en un archivo y quiero actualizar el file con el que estoy trabajando
     @FXML
     void updateFiles(ActionEvent event) {
+        for (int i = 0; i < listFiles.size(); i++) {
+            System.out.println(listFiles.get(i));
+        }
     }
 
     //boton para empezar a meter lo de las palabras de los files al arbol y lo demás
