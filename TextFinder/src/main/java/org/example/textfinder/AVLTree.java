@@ -1,12 +1,10 @@
 package org.example.textfinder;
-// Clase para representar un nodo en un Árbol AVL
 
+// Clase para representar un nodo en un Árbol AVL
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.lang.String;
-
-
 
 // Clase principal para el Árbol AVL
 public class AVLTree {
@@ -67,7 +65,6 @@ public class AVLTree {
         if (node == null) {
             return new AVLNode(data);
         }
-
         int comparison = data.getWord().compareTo(node.data.getWord());
 
         if (comparison < 0) {
@@ -106,7 +103,6 @@ public class AVLTree {
 
         return node; // Retornamos el nodo actualizado
     }
-
 
     // Recursive method to search for a WordData object
     public List<WordData> search(String wordToSearch) {

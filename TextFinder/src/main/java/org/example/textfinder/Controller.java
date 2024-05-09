@@ -172,30 +172,23 @@ public class Controller implements Initializable {
     @FXML
     void searchWord(ActionEvent event) {
         String wordToSearch = searchPane.getText();
-        WordData searchData = new WordData(wordToSearch, null, 0);
-        searchResults = avlTree.searchAll(searchData);
-        //boolean isValid = searchService.searchAndValidate(wordToSearch);
+        WordData searchData = new WordData(wordToSearch, null, 0); // Crear una instancia de WordData para la búsqueda
+        List<WordData> searchResults = avlTree.searchAll(searchData); // Buscar todas las instancias que coinciden
+
         if (avlTree.isTreeEmpty()) {
             System.out.println("El árbol está vacío. No hay palabras para buscar.");
-            return ;
+            return;
         }
+
         if (!searchResults.isEmpty()) {
-            for (int i = 0; i < searchResults.size(); i++){
-                System.out.println(searchResults.get(i).getWordList());
-
+            for (WordData wd : searchResults) {
+                System.out.println("Palabra: " + wd.getWord() + ", Conteo: " + wd.getCount() + ", Lista de palabras: " + wd.getWordList());
             }
-        }else{
-            System.out.println("Está vacía la lista ");
+        } else {
+            System.out.println("No se encontraron resultados para la búsqueda.");
         }
-
-
-        /*if (isValid) {
-            // Si la búsqueda fue exitosa, limpia el campo de búsqueda
-            searchPane.setText("");
-        }
-
-         */
     }
+
 
     //boton de actualizar
     //TODO: este boton es para cuando se realizan cambios en un archivo y quiero actualizar el file con el que estoy trabajando
