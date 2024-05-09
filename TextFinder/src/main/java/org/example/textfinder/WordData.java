@@ -1,25 +1,25 @@
 package org.example.textfinder;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 public class WordData {
     private File file; // Archivo donde se encuentra la palabra
     private Integer position; // Posición de la palabra en el archivo
     private String word; // Palabra en sí
-    private Integer count = 0; // Conteo de apariciones de la palabra
     private Map<String, Integer> wordCounts; // Mapa para almacenar el conteo de palabras
     private List<String> wordList; // Lista para almacenar las palabras
-
+    private AtomicInteger count = new AtomicInteger(1); // Ahora es AtomicInteger
     // Constructor
     public WordData(String word, File file, Integer position) {
         this.word = word;
         this.file = file;
         this.position = position;
-        this.count = 1; // Inicializa el conteo a 1 cuando se crea una nueva instancia
         this.wordCounts = new HashMap<>(); // Inicializa wordCounts
         this.wordList = new ArrayList<>(); // Inicializa wordList
     }
@@ -53,13 +53,9 @@ public class WordData {
         this.position = position;
     }
 
-    // Getter y Setter para count
+    // Getter para count
     public Integer getCount() {
-        return count;
-    }
-
-    public void setCount(Integer count) {
-        this.count = count;
+        return count.get(); // Usa get() para obtener el valor de AtomicInteger
     }
 
     // Método para leer el conteo de apariciones desde el archivo
@@ -72,7 +68,7 @@ public class WordData {
                     currentLine++;
                 }
             }
-            setCount(currentLine);
+            count.set(currentLine); // Usa set() para actualizar el valor de AtomicInteger
         }
     }
 
@@ -93,10 +89,14 @@ public class WordData {
 
     // Método para incrementar el conteo de una palabra
     public void incrementWordCount(String word) {
-        wordCounts.put(word, wordCounts.getOrDefault(word, 0) + 1);
+        count.incrementAndGet(); // Usa incrementAndGet para incrementar el conteo
     }
 
-
+    // Método corregido para agregar el nombre del archivo a la lista
+    public void addWordFromFile(File file) {
+        wordList.add(file.getName()); // Agrega el nombre del archivo a la lista
+    }
 }
+
 
 

@@ -10,7 +10,7 @@ public class AVLNode {
     AVLNode left; // Left child reference
     AVLNode right; // Right child reference
     int height; // Height of the node
-    Map<String, WordCount> wordCounts;
+    Map<String, WordData> wordCounts;
     List<WordData> wordList;
 
     // Constructor to create a new node with a given WordData
