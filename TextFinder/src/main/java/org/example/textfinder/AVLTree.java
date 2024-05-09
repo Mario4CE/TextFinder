@@ -129,18 +129,18 @@ public class AVLTree {
         }
     }
 
-    public List<WordData> searchAll(String wordToSearch) {
+    public List<WordData> searchAll(WordData wordToSearch) {
         List<WordData> results = new ArrayList<>();
         searchAllHelper(root, wordToSearch, results);
         return results;
     }
 
-    private void searchAllHelper(AVLNode node, String wordToSearch, List<WordData> results) {
+    private void searchAllHelper(AVLNode node, WordData wordToSearch, List<WordData> results) {
         if (node == null) {
             return;
         }
 
-        if (node.data.getWord().equals(wordToSearch)) {
+        if (node.data.getWord().equals(wordToSearch.getWord())) {
             results.add(node.data);
         }
 

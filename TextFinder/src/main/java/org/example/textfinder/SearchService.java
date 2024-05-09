@@ -6,10 +6,11 @@ public class SearchService {
     private final AVLTree avlTree;
 
     public SearchService(AVLTree avlTree) {
+
         this.avlTree = avlTree;
     }
 
-    public boolean searchAndValidate(String wordToSearch) {
+    /*public boolean searchAndValidate(WordData wordToSearch) {
         if (avlTree.isTreeEmpty()) {
             System.out.println("El árbol está vacío. No hay palabras para buscar.");
             return false;
@@ -28,5 +29,7 @@ public class SearchService {
             return false;
         }
     }
+
+     */
 }
 
