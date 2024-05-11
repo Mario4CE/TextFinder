@@ -16,6 +16,8 @@ import java.nio.file.Files;
 import java.util.*;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 
 public class Controller implements Initializable {
 
@@ -45,7 +47,6 @@ public class Controller implements Initializable {
     private int pos = 0;
     private WordData saveWord;
     private FileProcessor fileProcessor;
-    private SearchService searchService;
     LinkedList resultsList = new LinkedList();
     LinkedList addedWordsList = new LinkedList();
     private ObservableList<Elements> elementsList;
@@ -59,7 +60,6 @@ public class Controller implements Initializable {
         ocurrenceList = new HashSet<>(); // Usar HashSet para evitar duplicados
         listFiles = new ArrayList<>();
         fileProcessor = new FileProcessor(avlTree, ocurrenceList);
-        searchService = new SearchService(avlTree);
         elementsList = FXCollections.observableArrayList();
         this.firstColumn.setCellValueFactory(new PropertyValueFactory("first"));
         this.secondColumn.setCellValueFactory(new PropertyValueFactory("second"));
@@ -84,11 +84,16 @@ public class Controller implements Initializable {
         FileChooser fileChooser = new FileChooser();
         File selectedFile = fileChooser.showOpenDialog(null);
 
-        if (selectedFile != null) {
+        if (selectedFile!= null) {
             String fileExtension = getFileExtension(selectedFile);
 
-            if (fileExtension == null) {
+            if ("noProcessable".equals(fileExtension)) {
                 System.out.println("File type not supported");
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText(null);
+                alert.setContentText("No se puede procesar el archivo: ");
+                alert.showAndWait();
                 return;
             }
             listFiles.add(selectedFile);
@@ -97,9 +102,13 @@ public class Controller implements Initializable {
             try {
                 fileProcessor.processFile(selectedFile, fileExtension);
                 fileListView.getItems().add(selectedFile.getName());
-
             } catch (IOException e) {
                 System.err.println("Error al procesar el archivo: " + e.getMessage());
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText(null);
+                alert.setContentText("No se puede procesar el archivo: " + e.getMessage());
+                alert.showAndWait();
             }
         }
     }
@@ -112,9 +121,13 @@ public class Controller implements Initializable {
             fileExtension = "docx";
         } else if (file.getName().endsWith(".pdf")) {
             fileExtension = "pdf";
+        } else {
+            // Devuelve un valor especial en lugar de lanzar una excepción
+            fileExtension = "noProcessable";
         }
         return fileExtension;
     }
+
 
 
     //boton para añadir carpetas
@@ -160,11 +173,29 @@ public class Controller implements Initializable {
 
     //boton para eliminar un file
     @FXML
-    void deleteFile(ActionEvent event) {
-        int selectedFile = fileListView.getSelectionModel().getSelectedIndex();
-        listFiles.remove(selectedFile);
-        fileListView.getItems().remove(selectedFile);
+    void deleteFile(ActionEvent event) throws IOException {
+        int selectedIndex = fileListView.getSelectionModel().getSelectedIndex();
+
+        // Verificar si un archivo está seleccionado
+        if (selectedIndex == -1) {
+            // Mostrar mensaje al usuario
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Selección de archivo");
+            alert.setHeaderText("Por favor, selecciona un archivo");
+            alert.setContentText("Debes seleccionar un archivo antes de eliminarlo.");
+            alert.showAndWait();
+            return;
+        }
+
+        // Eliminar el archivo de la lista y la vista
+        File selectedFile = listFiles.get(selectedIndex);
+        listFiles.remove(selectedIndex);
+        fileListView.getItems().remove(selectedIndex);
+
+        // Llamar a la función de eliminación en FileProcessor
+        fileProcessor.deleteFromAVL(selectedFile);
     }
+
 
     //boton para abrir un file
     // TODO: preguntar por el abrir pq esto "en la posición donde aparecen las ocurrencias desde la aplicación" es como la listView
@@ -185,19 +216,47 @@ public class Controller implements Initializable {
     @FXML
     void searchWord(ActionEvent event) {
         String wordToSearch = searchPane.getText();
+        if (wordToSearch.isEmpty()) {
+            Alert alert = new Alert(AlertType.WARNING);
+            alert.setTitle("Advertencia");
+            alert.setHeaderText(null);
+            alert.setContentText("Por favor, ingresa una palabra para buscar.");
+            alert.showAndWait();
+            return;
+        }
+
         WordData searchData = new WordData(wordToSearch, null, 0); // Crear una instancia de WordData para la búsqueda
         List<WordData> searchResults = avlTree.searchAll(searchData); // Buscar todas las instancias que coinciden
 
-        if (avlTree.isTreeEmpty()) {
-            System.out.println("El árbol está vacío. No hay palabras para buscar.");
+        // Verificar si fileListView está vacío
+        if (fileListView.getItems().isEmpty()) {
+            Alert alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle("Información");
+            alert.setHeaderText(null);
+            alert.setContentText("No hay archivos para leer.");
+            alert.showAndWait();
+            searchPane.clear();
             return;
         }
-        //todo: tengo que hacer un if para que cuando la palabra que busco tiene posición 0 la añada en la parte de la first column y no en la otra
-        //todo: tengo que hacer que se limpie la lista despues de cada busqueda
-        //todo: HACER LO DE LA LISTA!!!! -> lo más importante
 
-        //lo de la lista es para añadirle un first y un second
-        if (!searchResults.isEmpty()) {
+        if (avlTree.isTreeEmpty()) {
+            Alert alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle("Información");
+            alert.setHeaderText(null);
+            alert.setContentText("El árbol está vacío. No hay palabras para buscar.");
+            alert.showAndWait();
+            return;
+        }
+
+        // Verificar si se encontraron resultados
+        if (searchResults.isEmpty()) {
+            Alert alert = new Alert(AlertType.INFORMATION);
+            alert.setTitle("Información");
+            alert.setHeaderText(null);
+            alert.setContentText("La palabra no está en el árbol.");
+            alert.showAndWait();
+        } else {
+            // Proceder a mostrar los resultados
             for (WordData wd : searchResults) {
                 resultsList.insert(wd);
                 wordListView.getItems().add(wd.getWord());
@@ -208,7 +267,6 @@ public class Controller implements Initializable {
                 elementsList.add(element);
                 this.tableView.setItems(elementsList);
 
-
                 //secondColumn.setStyle("-fx-font-weight: bold;");
                 for (int i = 0; i < wd.getWordList().size(); i++){
                     resultsList.insert(wd.getWordList().get(i));
@@ -218,11 +276,11 @@ public class Controller implements Initializable {
             for (int i = 0; i < resultsList.size(); i++){
                 System.out.println(resultsList.get(i).getPosition());
             }
-        } else {
-            System.out.println("No se encontraron resultados para la búsqueda.");
         }
-    }
 
+        // Limpiar el searchPane
+        searchPane.clear();
+    }
 
     //boton de actualizar
     //TODO: este boton es para cuando se realizan cambios en un archivo y quiero actualizar el file con el que estoy trabajando
