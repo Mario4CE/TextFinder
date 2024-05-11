@@ -1,9 +1,12 @@
 package org.example.textfinder;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import java.nio.file.Path;
@@ -43,7 +46,9 @@ public class Controller implements Initializable {
     private WordData saveWord;
     private FileProcessor fileProcessor;
     private SearchService searchService;
-    List<WordData> searchResults;
+    LinkedList resultsList = new LinkedList();
+    LinkedList addedWordsList = new LinkedList();
+    private ObservableList<Elements> elementsList;
 
 
     //aquí se pone toda la logica con lo que se necesita cuando apenas se inicia la aplicación
@@ -55,6 +60,14 @@ public class Controller implements Initializable {
         listFiles = new ArrayList<>();
         fileProcessor = new FileProcessor(avlTree, ocurrenceList);
         searchService = new SearchService(avlTree);
+        elementsList = FXCollections.observableArrayList();
+        this.firstColumn.setCellValueFactory(new PropertyValueFactory("first"));
+        this.secondColumn.setCellValueFactory(new PropertyValueFactory("second"));
+        this.thirdColumn.setCellValueFactory(new PropertyValueFactory("third"));
+
+        firstColumn.setStyle("-fx-background-color: white;");
+        secondColumn.setStyle("-fx-background-color: white;"+ "-fx-font-weight: bold;");
+        thirdColumn.setStyle("-fx-background-color: white;");
 
     }
 
@@ -179,10 +192,31 @@ public class Controller implements Initializable {
             System.out.println("El árbol está vacío. No hay palabras para buscar.");
             return;
         }
+        //todo: tengo que hacer un if para que cuando la palabra que busco tiene posición 0 la añada en la parte de la first column y no en la otra
+        //todo: tengo que hacer que se limpie la lista despues de cada busqueda
+        //todo: HACER LO DE LA LISTA!!!! -> lo más importante
 
+        //lo de la lista es para añadirle un first y un second
         if (!searchResults.isEmpty()) {
             for (WordData wd : searchResults) {
-                System.out.println("Palabra: " + wd.getWord() + ", Conteo: " + wd.getCount() + ", Lista de palabras: " + wd.getWordList());
+                resultsList.insert(wd);
+                wordListView.getItems().add(wd.getWord());
+                String first = "";
+                String second = wd.getWord();
+                String third = "";
+                Elements element = new Elements(first, second, third);
+                elementsList.add(element);
+                this.tableView.setItems(elementsList);
+
+
+                //secondColumn.setStyle("-fx-font-weight: bold;");
+                for (int i = 0; i < wd.getWordList().size(); i++){
+                    resultsList.insert(wd.getWordList().get(i));
+                    wordListView.getItems().add(wd.getWordList().get(i).getWord());
+                }
+            }
+            for (int i = 0; i < resultsList.size(); i++){
+                System.out.println(resultsList.get(i).getPosition());
             }
         } else {
             System.out.println("No se encontraron resultados para la búsqueda.");

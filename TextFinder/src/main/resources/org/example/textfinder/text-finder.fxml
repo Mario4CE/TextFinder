@@ -66,9 +66,9 @@
                         <ListView fx:id="wordListView" prefHeight="200.0" prefWidth="200.0" />
                         <TableView fx:id="tableView" layoutX="219.0" layoutY="180.0" prefHeight="200.0" prefWidth="226.0">
                           <columns>
-                            <TableColumn fx:id="firstColumn" prefWidth="75.0" text="C1" />
-                            <TableColumn fx:id="secondColumn" prefWidth="75.0" text="C2" />
-                              <TableColumn fx:id="thirdColumn" prefWidth="75.0" text="C3" />
+                            <TableColumn fx:id="firstColumn" prefWidth="75.0" />
+                            <TableColumn fx:id="secondColumn" prefWidth="75.0" />
+                              <TableColumn fx:id="thirdColumn" prefWidth="75.0" />
                           </columns>
                         </TableView>
                      </children></AnchorPane>

@@ -17,11 +17,10 @@ public class FileProcessor {
     private int position;
     private List<WordData> missingWordsList = new ArrayList<>();
 
-
     public FileProcessor(AVLTree avlTree, Set<String> occurrenceList) {
         this.avlTree = avlTree;
         this.occurrenceList = occurrenceList;
-        this.position = 1;
+        this.position = 0;
     }
 
     public void processFile(File file, String fileType) throws IOException {
@@ -49,16 +48,19 @@ public class FileProcessor {
             for (String word : words) {
                 String normalizedWord = word;
                 List<WordData> foundWords = avlTree.search(normalizedWord);
+                WordData wordDataUsage = new WordData(normalizedWord, pdfFile, position);
+                //addedWordsList.insert(wordDataUsage); aquí quiero poder hacer esto, la addedWordsList está en el controller
+
                 if (foundWords.isEmpty()) {
                     // Si la palabra no existe, crea una nueva instancia de WordData
-                    avlTree.root = avlTree.insert(avlTree.root, new WordData(normalizedWord, pdfFile, position));
+                    avlTree.root = avlTree.insert(avlTree.root, wordDataUsage);
                     position++;
                     System.out.println("Palabra añadida: " + normalizedWord); // Registro de depuración
                 } else {
                     // Si la palabra ya existe, simplemente incrementa el contador y agrega la palabra a la lista
                     WordData existingWordData = foundWords.get(0); // Asume que solo hay una coincidencia
                     existingWordData.incrementWordCount(normalizedWord);
-                    existingWordData.addWordFromFile(pdfFile); // Actualiza la lista con el pdfFile
+                    existingWordData.getWordList().add(wordDataUsage); // Actualiza la lista con el pdfFile
                     System.out.println("Palabra ya existente: " + normalizedWord + pdfFile);
                 }
             }
@@ -83,17 +85,21 @@ public class FileProcessor {
 
                 // Busca la palabra en el árbol AVL
                 List<WordData> foundWords = avlTree.search(normalizedWord);
+                WordData wordDataUsage = new WordData(normalizedWord, txtFile, position);
+                //añadir una lista que añada cada uno de esos wordDataUsage
                 if (foundWords.isEmpty()) {
                     // Si la palabra no existe, crea una nueva instancia de WordData
-                    avlTree.root = avlTree.insert(avlTree.root, new WordData(normalizedWord, txtFile, position));
+                    avlTree.root = avlTree.insert(avlTree.root, wordDataUsage);
+
                     System.out.println("Palabra añadida: " + normalizedWord + txtFile);
                 } else {
                     // Si la palabra ya existe, simplemente incrementa el contador y agrega la palabra a la lista
                     WordData existingWordData = foundWords.get(0); // Asume que solo hay una coincidencia
                     existingWordData.incrementWordCount(normalizedWord);
-                    existingWordData.addWordFromFile(txtFile); // Actualiza la lista con el txtFile
+                    existingWordData.getWordList().add(wordDataUsage); // Actualiza la lista con el txtFile
                     System.out.println("Palabra ya existente: " + normalizedWord + txtFile);
                 }
+                position++;
             }
         } catch (IOException e) {
             System.err.println("Error al guardar el texto en el árbol: " + e.getMessage());
@@ -111,16 +117,17 @@ public class FileProcessor {
             for (String word : words) {
                 String normalizedWord = word;
                 List<WordData> foundWords = avlTree.search(normalizedWord);
+                WordData wordDataUsage = new WordData(normalizedWord, docxFile, position);
                 if (foundWords.isEmpty()) {
                     // Si la palabra no existe, crea una nueva instancia de WordData
-                    avlTree.root = avlTree.insert(avlTree.root, new WordData(normalizedWord, docxFile, position));
+                    avlTree.root = avlTree.insert(avlTree.root, wordDataUsage);
                     position++;
                     System.out.println("Palabra añadida: " + normalizedWord); // Registro de depuración
                 } else {
                     // Si la palabra ya existe, simplemente incrementa el contador y agrega la palabra a la lista
                     WordData existingWordData = foundWords.get(0); // Asume que solo hay una coincidencia
                     existingWordData.incrementWordCount(normalizedWord);
-                    existingWordData.addWordFromFile(docxFile); // Actualiza la lista con el docxFile
+                    existingWordData.getWordList().add(wordDataUsage); // Actualiza la lista con el docxFile
                     System.out.println("Palabra ya existente: " + normalizedWord + docxFile);
                 }
             }

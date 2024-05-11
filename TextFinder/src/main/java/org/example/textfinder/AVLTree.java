@@ -74,7 +74,7 @@ public class AVLTree {
         } else {
             // La palabra ya existe en el nodo, así que actualizamos el conteo y agregamos la nueva información
             node.data.incrementWordCount(data.getWord()); // Actualizamos el conteo de la palabra existente
-            node.data.addWord(data.getWord()); // Agregamos la nueva información a la lista de palabras
+            node.data.addWord(data); // Agregamos la nueva información a la lista de palabras
             return node; // No necesitamos hacer ninguna rotación porque el árbol ya está equilibrado
         }
 
