@@ -13,7 +13,7 @@ public class WordData {
     private Integer position; // Posición de la palabra en el archivo
     private String word; // Palabra en sí
     private Map<String, Integer> wordCounts; // Mapa para almacenar el conteo de palabras
-    private List<String> wordList; // Lista para almacenar las palabras
+    private List<WordData> wordList; // Lista para almacenar las palabras
     private AtomicInteger count = new AtomicInteger(1); // Ahora es AtomicInteger
     // Constructor
     public WordData(String word, File file, Integer position) {
@@ -78,12 +78,12 @@ public class WordData {
     }
 
     // Método para obtener la lista de palabras
-    public List<String> getWordList() {
+    public List<WordData> getWordList() {
         return wordList;
     }
 
     // Método para agregar una palabra a la lista
-    public void addWord(String word) {
+    public void addWord(WordData word) {
         wordList.add(word);
     }
 
@@ -92,10 +92,13 @@ public class WordData {
         count.incrementAndGet(); // Usa incrementAndGet para incrementar el conteo
     }
 
+
     // Método corregido para agregar el nombre del archivo a la lista
-    public void addWordFromFile(File file) {
+    /*public void addWordFromFile(File file) {
         wordList.add(file.getName()); // Agrega el nombre del archivo a la lista
     }
+
+     */
 }
 
 
