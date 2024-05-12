@@ -53,11 +53,6 @@ public class WordData {
         this.position = position;
     }
 
-    // Getter para count
-    public Integer getCount() {
-        return count.get(); // Usa get() para obtener el valor de AtomicInteger
-    }
-
     // Método para obtener el conteo de una palabra específica
     public Integer getWordCount(String word) {
         return wordCounts.get(word);
@@ -71,6 +66,13 @@ public class WordData {
     // Método para agregar una palabra a la lista
     public void addWord(WordData word) {
         wordList.add(word);
+    }
+
+//    public AtomicInteger getCount() {
+//        return count;
+//    }
+    public Integer getCount() {
+        return count.get(); // Utiliza el método get() de AtomicInteger para obtener el valor actual
     }
 
     // Método para incrementar el conteo de una palabra

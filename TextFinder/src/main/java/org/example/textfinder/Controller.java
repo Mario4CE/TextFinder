@@ -18,6 +18,9 @@ import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Controller implements Initializable {
 
@@ -61,15 +64,16 @@ public class Controller implements Initializable {
         listFiles = new ArrayList<>();
         fileProcessor = new FileProcessor(avlTree, ocurrenceList);
         elementsList = FXCollections.observableArrayList();
+
         this.firstColumn.setCellValueFactory(new PropertyValueFactory("first"));
         this.secondColumn.setCellValueFactory(new PropertyValueFactory("second"));
         this.thirdColumn.setCellValueFactory(new PropertyValueFactory("third"));
 
-        firstColumn.setStyle("-fx-background-color: white;");
-        secondColumn.setStyle("-fx-background-color: white;"+ "-fx-font-weight: bold;");
-        thirdColumn.setStyle("-fx-background-color: white;");
-
+        firstColumn.setStyle("-fx-background-color: White; -fx-alignment: center;");
+        secondColumn.setStyle("-fx-background-color: white; -fx-font-weight: bold; -fx-alignment: center;");
+        thirdColumn.setStyle("-fx-background-color: white; -fx-alignment: center;");
     }
+
 
     //este sortResultsBy is lo que quiero que pase cuando se selecciona una de las opciones del choiceBox
     public void sortResultsBy(ActionEvent event) {
@@ -89,11 +93,7 @@ public class Controller implements Initializable {
 
             if ("noProcessable".equals(fileExtension)) {
                 System.out.println("File type not supported");
-                Alert alert = new Alert(AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setHeaderText(null);
-                alert.setContentText("No se puede procesar el archivo: ");
-                alert.showAndWait();
+                showAlert("Información", "No se puede procesar el archivo: ");
                 return;
             }
             listFiles.add(selectedFile);
@@ -104,11 +104,7 @@ public class Controller implements Initializable {
                 fileListView.getItems().add(selectedFile.getName());
             } catch (IOException e) {
                 System.err.println("Error al procesar el archivo: " + e.getMessage());
-                Alert alert = new Alert(AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setHeaderText(null);
-                alert.setContentText("No se puede procesar el archivo: " + e.getMessage());
-                alert.showAndWait();
+                showAlert("Información", "No se puede procesar el archivo: " + e.getMessage());
             }
         }
     }
@@ -127,8 +123,6 @@ public class Controller implements Initializable {
         }
         return fileExtension;
     }
-
-
 
     //boton para añadir carpetas
     @FXML
@@ -214,72 +208,67 @@ public class Controller implements Initializable {
 
     //boton search
     @FXML
-    void searchWord(ActionEvent event) {
-        String wordToSearch = searchPane.getText();
-        if (wordToSearch.isEmpty()) {
-            Alert alert = new Alert(AlertType.WARNING);
-            alert.setTitle("Advertencia");
-            alert.setHeaderText(null);
-            alert.setContentText("Por favor, ingresa una palabra para buscar.");
-            alert.showAndWait();
+    public void searchWord(ActionEvent event) {
+        String input = searchPane.getText();
+        if (input.isEmpty()) {
+            showAlert("Información", "Por favor, ingresa una palabra para buscar.");
             return;
         }
+        String[] words = input.split("\\s+");
+        boolean isPhrase = words.length > 1;
+        if (isPhrase) {
+            validatePhrase(input);
+        }else {
+            String wordToSearch = input.trim();
+            WordData searchData = new WordData(wordToSearch, null, 0);
+            List<WordData> searchResults = avlTree.searchAll(searchData);
+            if (fileListView.getItems().isEmpty()) {
+                showAlert("Información", "No hay archivos para leer.");
+                searchPane.clear();
+                return;
+            }
 
-        WordData searchData = new WordData(wordToSearch, null, 0); // Crear una instancia de WordData para la búsqueda
-        List<WordData> searchResults = avlTree.searchAll(searchData); // Buscar todas las instancias que coinciden
-
-        // Verificar si fileListView está vacío
-        if (fileListView.getItems().isEmpty()) {
-            Alert alert = new Alert(AlertType.INFORMATION);
-            alert.setTitle("Información");
-            alert.setHeaderText(null);
-            alert.setContentText("No hay archivos para leer.");
-            alert.showAndWait();
-            searchPane.clear();
-            return;
-        }
-
-        if (avlTree.isTreeEmpty()) {
-            Alert alert = new Alert(AlertType.INFORMATION);
-            alert.setTitle("Información");
-            alert.setHeaderText(null);
-            alert.setContentText("El árbol está vacío. No hay palabras para buscar.");
-            alert.showAndWait();
-            return;
-        }
-
-        // Verificar si se encontraron resultados
-        if (searchResults.isEmpty()) {
-            Alert alert = new Alert(AlertType.INFORMATION);
-            alert.setTitle("Información");
-            alert.setHeaderText(null);
-            alert.setContentText("La palabra no está en el árbol.");
-            alert.showAndWait();
-        } else {
-            // Proceder a mostrar los resultados
-            for (WordData wd : searchResults) {
-                resultsList.insert(wd);
-                wordListView.getItems().add(wd.getWord());
-                String first = "";
-                String second = wd.getWord();
-                String third = "";
-                Elements element = new Elements(first, second, third);
-                elementsList.add(element);
-                this.tableView.setItems(elementsList);
-
-                //secondColumn.setStyle("-fx-font-weight: bold;");
-                for (int i = 0; i < wd.getWordList().size(); i++){
-                    resultsList.insert(wd.getWordList().get(i));
-                    wordListView.getItems().add(wd.getWordList().get(i).getWord());
+            if (avlTree.isTreeEmpty()) {
+                showAlert("Información", "El árbol está vacío. No hay palabras para buscar.");
+                return;
+            }
+            if (searchResults.isEmpty()) {
+                showAlert("Información", "La palabra no está en el árbol.");
+            } else {
+                WordData searchData1 = new WordData(wordToSearch, null, 0);
+                List<WordData> searchResults1 = avlTree.searchAll(searchData);
+                for (WordData result : searchResults1) {
+                    // Agrega la palabra y su cantidad de apariciones al wordListView
+                    wordListView.getItems().add("Palabra: " + result.getWord() + "  Cantidad: " + result.getCount());
                 }
-            }
-            for (int i = 0; i < resultsList.size(); i++){
-                System.out.println(resultsList.get(i).getPosition());
+                for (File file : listFiles) {
+                    try (Scanner scanner = new Scanner(file)) {
+                        while (scanner.hasNextLine()) {
+                            String line = scanner.nextLine();
+                            Pattern p = Pattern.compile("(\\w+)?\\s*" + wordToSearch + "(\\s+\\w+)?");
+                            Matcher m = p.matcher(line);
+                            while (m.find()) {
+                                String wordBefore = m.group(1) != null ? m.group(1) : "";
+                                String wordAfter = m.group(2) != null ? m.group(2).trim() : "";
+                                Elements element = new Elements(wordBefore, wordToSearch, wordAfter);
+                                elementsList.add(element);
+                                //this.tableView.setItems(elementsList);
+                            }
+                        }
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                }
+                tableView.setItems(elementsList);
             }
         }
-
-        // Limpiar el searchPane
         searchPane.clear();
+    }
+
+    private void validatePhrase(String phrase) {
+        // Implementa la lógica de validación para la frase
+        System.out.println("Validando frase: " + phrase);
+        // Aquí puedes agregar la lógica específica para validar la frase
     }
 
     //boton de actualizar
@@ -306,5 +295,12 @@ public class Controller implements Initializable {
                 System.err.println("Error al procesar el archivo: " + e.getMessage());
             }
         }
+    }
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 }
