@@ -66,7 +66,7 @@ public class Controller implements Initializable {
         this.thirdColumn.setCellValueFactory(new PropertyValueFactory("third"));
 
         firstColumn.setStyle("-fx-background-color: white;");
-        secondColumn.setStyle("-fx-background-color: white;"+ "-fx-font-weight: bold;");
+        secondColumn.setStyle("-fx-background-color: white;"+ "-fx-text-fill: red;");
         thirdColumn.setStyle("-fx-background-color: white;");
 
     }
@@ -192,6 +192,8 @@ public class Controller implements Initializable {
             System.out.println("El árbol está vacío. No hay palabras para buscar.");
             return;
         }
+        wordListView.getItems().clear();
+        elementsList.clear();
         //todo: tengo que hacer un if para que cuando la palabra que busco tiene posición 0 la añada en la parte de la first column y no en la otra
         //todo: tengo que hacer que se limpie la lista despues de cada busqueda
         //todo: HACER LO DE LA LISTA!!!! -> lo más importante
@@ -200,27 +202,44 @@ public class Controller implements Initializable {
         if (!searchResults.isEmpty()) {
             for (WordData wd : searchResults) {
                 resultsList.insert(wd);
-                wordListView.getItems().add(wd.getWord());
+                wordListView.getItems().add("hola" + wd.getWord() + "holap");
+
                 String first = "";
                 String second = wd.getWord();
                 String third = "";
                 Elements element = new Elements(first, second, third);
-                elementsList.add(element);
-                this.tableView.setItems(elementsList);
-
+                ScreenShowing(element);
 
                 //secondColumn.setStyle("-fx-font-weight: bold;");
                 for (int i = 0; i < wd.getWordList().size(); i++){
+                    String second1 = wd.getWordList().get(i).getWord();
+                    String third1 = "";
+                    String first1 = "";
+
                     resultsList.insert(wd.getWordList().get(i));
-                    wordListView.getItems().add(wd.getWordList().get(i).getWord());
+                    wordListView.getItems().add(second1);
+                    wordListView.getItems().add(third1);
+
+                    Elements element1 = new Elements(first1, second1, third1);
+                    ScreenShowing(element1);
                 }
+
             }
             for (int i = 0; i < resultsList.size(); i++){
                 System.out.println(resultsList.get(i).getPosition());
             }
+            resultsList.clear();
+
         } else {
             System.out.println("No se encontraron resultados para la búsqueda.");
         }
+    }
+
+    private void ScreenShowing(Elements elements){
+        elementsList.add(elements);
+        this.tableView.setItems(elementsList);
+
+
     }
 
 

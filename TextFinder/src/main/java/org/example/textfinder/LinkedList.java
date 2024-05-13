@@ -60,6 +60,8 @@ public class LinkedList {
         }
         return current.data;
     }
-
-
+    public void clear() {
+        head = null;
+        tail = null;
+    }
 }
