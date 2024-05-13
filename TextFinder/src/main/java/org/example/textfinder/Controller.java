@@ -16,6 +16,11 @@ import java.nio.file.Files;
 import java.util.*;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Controller implements Initializable {
 
@@ -45,7 +50,6 @@ public class Controller implements Initializable {
     private int pos = 0;
     private WordData saveWord;
     private FileProcessor fileProcessor;
-    private SearchService searchService;
     LinkedList resultsList = new LinkedList();
     LinkedList addedWordsList = new LinkedList();
     private ObservableList<Elements> elementsList;
@@ -59,17 +63,17 @@ public class Controller implements Initializable {
         ocurrenceList = new HashSet<>(); // Usar HashSet para evitar duplicados
         listFiles = new ArrayList<>();
         fileProcessor = new FileProcessor(avlTree, ocurrenceList);
-        searchService = new SearchService(avlTree);
         elementsList = FXCollections.observableArrayList();
+
         this.firstColumn.setCellValueFactory(new PropertyValueFactory("first"));
         this.secondColumn.setCellValueFactory(new PropertyValueFactory("second"));
         this.thirdColumn.setCellValueFactory(new PropertyValueFactory("third"));
 
-        firstColumn.setStyle("-fx-background-color: white;");
-        secondColumn.setStyle("-fx-background-color: white;"+ "-fx-font-weight: bold;");
-        thirdColumn.setStyle("-fx-background-color: white;");
-
+        firstColumn.setStyle("-fx-background-color: White; -fx-alignment: center;");
+        secondColumn.setStyle("-fx-background-color: white; -fx-font-weight: bold; -fx-alignment: center;");
+        thirdColumn.setStyle("-fx-background-color: white; -fx-alignment: center;");
     }
+
 
     //este sortResultsBy is lo que quiero que pase cuando se selecciona una de las opciones del choiceBox
     public void sortResultsBy(ActionEvent event) {
@@ -84,11 +88,12 @@ public class Controller implements Initializable {
         FileChooser fileChooser = new FileChooser();
         File selectedFile = fileChooser.showOpenDialog(null);
 
-        if (selectedFile != null) {
+        if (selectedFile!= null) {
             String fileExtension = getFileExtension(selectedFile);
 
-            if (fileExtension == null) {
+            if ("noProcessable".equals(fileExtension)) {
                 System.out.println("File type not supported");
+                showAlert("Información", "No se puede procesar el archivo: ");
                 return;
             }
             listFiles.add(selectedFile);
@@ -97,9 +102,9 @@ public class Controller implements Initializable {
             try {
                 fileProcessor.processFile(selectedFile, fileExtension);
                 fileListView.getItems().add(selectedFile.getName());
-
             } catch (IOException e) {
                 System.err.println("Error al procesar el archivo: " + e.getMessage());
+                showAlert("Información", "No se puede procesar el archivo: " + e.getMessage());
             }
         }
     }
@@ -112,10 +117,12 @@ public class Controller implements Initializable {
             fileExtension = "docx";
         } else if (file.getName().endsWith(".pdf")) {
             fileExtension = "pdf";
+        } else {
+            // Devuelve un valor especial en lugar de lanzar una excepción
+            fileExtension = "noProcessable";
         }
         return fileExtension;
     }
-
 
     //boton para añadir carpetas
     @FXML
@@ -160,11 +167,29 @@ public class Controller implements Initializable {
 
     //boton para eliminar un file
     @FXML
-    void deleteFile(ActionEvent event) {
-        int selectedFile = fileListView.getSelectionModel().getSelectedIndex();
-        listFiles.remove(selectedFile);
-        fileListView.getItems().remove(selectedFile);
+    void deleteFile(ActionEvent event) throws IOException {
+        int selectedIndex = fileListView.getSelectionModel().getSelectedIndex();
+
+        // Verificar si un archivo está seleccionado
+        if (selectedIndex == -1) {
+            // Mostrar mensaje al usuario
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Selección de archivo");
+            alert.setHeaderText("Por favor, selecciona un archivo");
+            alert.setContentText("Debes seleccionar un archivo antes de eliminarlo.");
+            alert.showAndWait();
+            return;
+        }
+
+        // Eliminar el archivo de la lista y la vista
+        File selectedFile = listFiles.get(selectedIndex);
+        listFiles.remove(selectedIndex);
+        fileListView.getItems().remove(selectedIndex);
+
+        // Llamar a la función de eliminación en FileProcessor
+        fileProcessor.deleteFromAVL(selectedFile);
     }
+
 
     //boton para abrir un file
     // TODO: preguntar por el abrir pq esto "en la posición donde aparecen las ocurrencias desde la aplicación" es como la listView
@@ -183,46 +208,68 @@ public class Controller implements Initializable {
 
     //boton search
     @FXML
-    void searchWord(ActionEvent event) {
-        String wordToSearch = searchPane.getText();
-        WordData searchData = new WordData(wordToSearch, null, 0); // Crear una instancia de WordData para la búsqueda
-        List<WordData> searchResults = avlTree.searchAll(searchData); // Buscar todas las instancias que coinciden
-
-        if (avlTree.isTreeEmpty()) {
-            System.out.println("El árbol está vacío. No hay palabras para buscar.");
+    public void searchWord(ActionEvent event) {
+        String input = searchPane.getText();
+        if (input.isEmpty()) {
+            showAlert("Información", "Por favor, ingresa una palabra para buscar.");
             return;
         }
-        //todo: tengo que hacer un if para que cuando la palabra que busco tiene posición 0 la añada en la parte de la first column y no en la otra
-        //todo: tengo que hacer que se limpie la lista despues de cada busqueda
-        //todo: HACER LO DE LA LISTA!!!! -> lo más importante
+        String[] words = input.split("\\s+");
+        boolean isPhrase = words.length > 1;
+        if (isPhrase) {
+            validatePhrase(input);
+        }else {
+            String wordToSearch = input.trim();
+            WordData searchData = new WordData(wordToSearch, null, 0);
+            List<WordData> searchResults = avlTree.searchAll(searchData);
+            if (fileListView.getItems().isEmpty()) {
+                showAlert("Información", "No hay archivos para leer.");
+                searchPane.clear();
+                return;
+            }
 
-        //lo de la lista es para añadirle un first y un second
-        if (!searchResults.isEmpty()) {
-            for (WordData wd : searchResults) {
-                resultsList.insert(wd);
-                wordListView.getItems().add(wd.getWord());
-                String first = "";
-                String second = wd.getWord();
-                String third = "";
-                Elements element = new Elements(first, second, third);
-                elementsList.add(element);
-                this.tableView.setItems(elementsList);
-
-
-                //secondColumn.setStyle("-fx-font-weight: bold;");
-                for (int i = 0; i < wd.getWordList().size(); i++){
-                    resultsList.insert(wd.getWordList().get(i));
-                    wordListView.getItems().add(wd.getWordList().get(i).getWord());
+            if (avlTree.isTreeEmpty()) {
+                showAlert("Información", "El árbol está vacío. No hay palabras para buscar.");
+                return;
+            }
+            if (searchResults.isEmpty()) {
+                showAlert("Información", "La palabra no está en el árbol.");
+            } else {
+                WordData searchData1 = new WordData(wordToSearch, null, 0);
+                List<WordData> searchResults1 = avlTree.searchAll(searchData);
+                for (WordData result : searchResults1) {
+                    // Agrega la palabra y su cantidad de apariciones al wordListView
+                    wordListView.getItems().add("Palabra: " + result.getWord() + "  Cantidad: " + result.getCount());
                 }
+                for (File file : listFiles) {
+                    try (Scanner scanner = new Scanner(file)) {
+                        while (scanner.hasNextLine()) {
+                            String line = scanner.nextLine();
+                            Pattern p = Pattern.compile("(\\w+)?\\s*" + wordToSearch + "(\\s+\\w+)?");
+                            Matcher m = p.matcher(line);
+                            while (m.find()) {
+                                String wordBefore = m.group(1) != null ? m.group(1) : "";
+                                String wordAfter = m.group(2) != null ? m.group(2).trim() : "";
+                                Elements element = new Elements(wordBefore, wordToSearch, wordAfter);
+                                elementsList.add(element);
+                                //this.tableView.setItems(elementsList);
+                            }
+                        }
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                }
+                tableView.setItems(elementsList);
             }
-            for (int i = 0; i < resultsList.size(); i++){
-                System.out.println(resultsList.get(i).getPosition());
-            }
-        } else {
-            System.out.println("No se encontraron resultados para la búsqueda.");
         }
+        searchPane.clear();
     }
 
+    private void validatePhrase(String phrase) {
+        // Implementa la lógica de validación para la frase
+        System.out.println("Validando frase: " + phrase);
+        // Aquí puedes agregar la lógica específica para validar la frase
+    }
 
     //boton de actualizar
     //TODO: este boton es para cuando se realizan cambios en un archivo y quiero actualizar el file con el que estoy trabajando
@@ -248,5 +295,12 @@ public class Controller implements Initializable {
                 System.err.println("Error al procesar el archivo: " + e.getMessage());
             }
         }
+    }
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 }

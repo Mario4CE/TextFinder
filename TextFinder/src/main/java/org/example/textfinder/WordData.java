@@ -53,25 +53,6 @@ public class WordData {
         this.position = position;
     }
 
-    // Getter para count
-    public Integer getCount() {
-        return count.get(); // Usa get() para obtener el valor de AtomicInteger
-    }
-
-    // Método para leer el conteo de apariciones desde el archivo
-    public void updateCountFromDisk() throws IOException {
-        try (Scanner scanner = new Scanner(Files.newBufferedReader(Paths.get(file.getPath())))) {
-            int currentLine = 1;
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                if (line.contains(word)) {
-                    currentLine++;
-                }
-            }
-            count.set(currentLine); // Usa set() para actualizar el valor de AtomicInteger
-        }
-    }
-
     // Método para obtener el conteo de una palabra específica
     public Integer getWordCount(String word) {
         return wordCounts.get(word);
@@ -87,18 +68,18 @@ public class WordData {
         wordList.add(word);
     }
 
+//    public AtomicInteger getCount() {
+//        return count;
+//    }
+    public Integer getCount() {
+        return count.get(); // Utiliza el método get() de AtomicInteger para obtener el valor actual
+    }
+
     // Método para incrementar el conteo de una palabra
     public void incrementWordCount(String word) {
         count.incrementAndGet(); // Usa incrementAndGet para incrementar el conteo
     }
 
-
-    // Método corregido para agregar el nombre del archivo a la lista
-    /*public void addWordFromFile(File file) {
-        wordList.add(file.getName()); // Agrega el nombre del archivo a la lista
-    }
-
-     */
 }
 
 

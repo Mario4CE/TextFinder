@@ -13,13 +13,11 @@ import java.io.IOException;
 
 public class FileProcessor {
     private AVLTree avlTree;
-    private Set<String> occurrenceList; // Usando Set para evitar duplicados
     private int position;
-    private List<WordData> missingWordsList = new ArrayList<>();
+
 
     public FileProcessor(AVLTree avlTree, Set<String> occurrenceList) {
         this.avlTree = avlTree;
-        this.occurrenceList = occurrenceList;
         this.position = 0;
     }
 
@@ -55,13 +53,11 @@ public class FileProcessor {
                     // Si la palabra no existe, crea una nueva instancia de WordData
                     avlTree.root = avlTree.insert(avlTree.root, wordDataUsage);
                     position++;
-                    System.out.println("Palabra añadida: " + normalizedWord); // Registro de depuración
                 } else {
                     // Si la palabra ya existe, simplemente incrementa el contador y agrega la palabra a la lista
                     WordData existingWordData = foundWords.get(0); // Asume que solo hay una coincidencia
                     existingWordData.incrementWordCount(normalizedWord);
                     existingWordData.getWordList().add(wordDataUsage); // Actualiza la lista con el pdfFile
-                    System.out.println("Palabra ya existente: " + normalizedWord + pdfFile);
                 }
             }
         } catch (IOException e) {
@@ -81,7 +77,6 @@ public class FileProcessor {
 
             for (String word : words) {
                 String normalizedWord = word.trim(); // Asegurarse de que la palabra esté normalizada
-                System.out.println("Palabra procesada: " + normalizedWord); // Depuración
 
                 // Busca la palabra en el árbol AVL
                 List<WordData> foundWords = avlTree.search(normalizedWord);
@@ -90,14 +85,11 @@ public class FileProcessor {
                 if (foundWords.isEmpty()) {
                     // Si la palabra no existe, crea una nueva instancia de WordData
                     avlTree.root = avlTree.insert(avlTree.root, wordDataUsage);
-
-                    System.out.println("Palabra añadida: " + normalizedWord + txtFile);
                 } else {
                     // Si la palabra ya existe, simplemente incrementa el contador y agrega la palabra a la lista
                     WordData existingWordData = foundWords.get(0); // Asume que solo hay una coincidencia
                     existingWordData.incrementWordCount(normalizedWord);
                     existingWordData.getWordList().add(wordDataUsage); // Actualiza la lista con el txtFile
-                    System.out.println("Palabra ya existente: " + normalizedWord + txtFile);
                 }
                 position++;
             }
@@ -122,13 +114,11 @@ public class FileProcessor {
                     // Si la palabra no existe, crea una nueva instancia de WordData
                     avlTree.root = avlTree.insert(avlTree.root, wordDataUsage);
                     position++;
-                    System.out.println("Palabra añadida: " + normalizedWord); // Registro de depuración
                 } else {
                     // Si la palabra ya existe, simplemente incrementa el contador y agrega la palabra a la lista
                     WordData existingWordData = foundWords.get(0); // Asume que solo hay una coincidencia
                     existingWordData.incrementWordCount(normalizedWord);
                     existingWordData.getWordList().add(wordDataUsage); // Actualiza la lista con el docxFile
-                    System.out.println("Palabra ya existente: " + normalizedWord + docxFile);
                 }
             }
         } catch (IOException e) {
@@ -180,4 +170,9 @@ public class FileProcessor {
 
             return extractedText;
         }
+    public void deleteFromAVL(File fileToDelete) {
+        // Recorre el árbol AVL para encontrar y eliminar todas las instancias de WordData asociadas con el archivo especificado
+        System.err.println("Holi");
+    }
+
 }
