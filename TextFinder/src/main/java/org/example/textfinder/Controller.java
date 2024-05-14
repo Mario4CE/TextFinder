@@ -6,21 +6,38 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.awt.*;
 import java.nio.file.Path;
 import java.io.*;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.*;
-import java.io.IOException;
-import java.nio.file.NoSuchFileException;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
+
+import javax.xml.stream.XMLStreamException;
+
 
 public class Controller implements Initializable {
 
@@ -46,13 +63,12 @@ public class Controller implements Initializable {
     private AVLTree avlTree;
     private Set<String> ocurrenceList = new HashSet<>(); // Usar HashSet para evitar duplicados
     private String[] sortBy = {"nombre del archivo", "fecha de creación", "tamaño"};
-    private int position = 0;
-    private int pos = 0;
     private WordData saveWord;
     private FileProcessor fileProcessor;
-    LinkedList resultsList = new LinkedList();
-    LinkedList addedWordsList = new LinkedList();
     private ObservableList<Elements> elementsList;
+    private String lastword = "";
+    private List<String> fileSearchResults = new ArrayList<>();
+
 
 
     //aquí se pone toda la logica con lo que se necesita cuando apenas se inicia la aplicación
@@ -172,12 +188,7 @@ public class Controller implements Initializable {
 
         // Verificar si un archivo está seleccionado
         if (selectedIndex == -1) {
-            // Mostrar mensaje al usuario
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Selección de archivo");
-            alert.setHeaderText("Por favor, selecciona un archivo");
-            alert.setContentText("Debes seleccionar un archivo antes de eliminarlo.");
-            alert.showAndWait();
+            showAlert("Selección de archivo", "Debes seleccionar un archivo antes de eliminarlo.");
             return;
         }
 
@@ -186,24 +197,67 @@ public class Controller implements Initializable {
         listFiles.remove(selectedIndex);
         fileListView.getItems().remove(selectedIndex);
 
-        // Llamar a la función de eliminación en FileProcessor
-        fileProcessor.deleteFromAVL(selectedFile);
+        // Limpiar el árbol AVL
+        avlTree.clear();
+
+        // Volver a procesar los archivos en listFiles
+        for (File file : listFiles) {
+            try {
+                // Procesar el archivo para añadir sus contenidos al árbol AVL
+                String fileType = getFileExtension(file);
+                fileProcessor.processFile(file, fileType);
+            } catch (IOException e) {
+                System.err.println("Error al procesar el archivo: " + e.getMessage());
+            }
+        }
     }
 
-
     //boton para abrir un file
-    // TODO: preguntar por el abrir pq esto "en la posición donde aparecen las ocurrencias desde la aplicación" es como la listView
     @FXML
     void openFile(ActionEvent event) {
-        //ahorita lo que hace es nada más tirarme lo que tiene la lista
-        //fue solo para probar, hay que cambiarlo
-        if (listFiles != null) {
-            for (int i = 0; i < listFiles.size(); i++) {
-                System.out.println(listFiles.get(i));
+        if (!lastword.isEmpty()) {
+            // Buscar el archivo que contiene la última palabra encontrada
+            File foundFile = null;
+            for (File file : listFiles) {
+                try (Scanner scanner = new Scanner(file)) {
+                    while (scanner.hasNextLine()) {
+                        String line = scanner.nextLine();
+                        if (line.contains(lastword)) {
+                            foundFile = file;
+                            break;
+                        }
+                    }
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (foundFile!= null) {
+                // Abrir el archivo encontrado
+                try {
+                    Desktop.getDesktop().open(foundFile);
+                    // Marcar la primera aparición de la última palabra encontrada en la ListView
+                    markFirstOccurrenceInListView(lastword);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                showAlert("Información", "No se encontró el archivo con la última palabra encontrada.");
             }
         } else {
-            System.out.println("This list is empty");
+            showAlert("Información", "No se ha encontrado ninguna palabra aún.");
         }
+    }
+
+    private void markFirstOccurrenceInListView(String word) {
+        System.err.println("Error al leer el archivo: ");
+        // Implementa la lógica para marcar la primera aparición de la palabra en la ListView
+        // Esto podría implicar agregar la línea que contiene la palabra a la lista de líneas marcadas
+        // y luego actualizar la ListView con esta lista
+        // Por ejemplo, si tienes una lista observable de líneas marcadas:
+        // markedLinesList.add(lineContainingWord);
+        // Y luego actualizas la ListView con esta lista
+        // wordListView.getItems().setAll(markedLinesList);
     }
 
     //boton search
@@ -218,7 +272,7 @@ public class Controller implements Initializable {
         boolean isPhrase = words.length > 1;
         if (isPhrase) {
             validatePhrase(input);
-        }else {
+        } else {
             String wordToSearch = input.trim();
             WordData searchData = new WordData(wordToSearch, null, 0);
             List<WordData> searchResults = avlTree.searchAll(searchData);
@@ -235,34 +289,88 @@ public class Controller implements Initializable {
             if (searchResults.isEmpty()) {
                 showAlert("Información", "La palabra no está en el árbol.");
             } else {
-                WordData searchData1 = new WordData(wordToSearch, null, 0);
-                List<WordData> searchResults1 = avlTree.searchAll(searchData);
-                for (WordData result : searchResults1) {
+                List<String> fileSearchResults = new ArrayList<>();
+                for (WordData result : searchResults) {
                     // Agrega la palabra y su cantidad de apariciones al wordListView
                     wordListView.getItems().add("Palabra: " + result.getWord() + "  Cantidad: " + result.getCount());
                 }
                 for (File file : listFiles) {
-                    try (Scanner scanner = new Scanner(file)) {
-                        while (scanner.hasNextLine()) {
-                            String line = scanner.nextLine();
-                            Pattern p = Pattern.compile("(\\w+)?\\s*" + wordToSearch + "(\\s+\\w+)?");
-                            Matcher m = p.matcher(line);
-                            while (m.find()) {
-                                String wordBefore = m.group(1) != null ? m.group(1) : "";
-                                String wordAfter = m.group(2) != null ? m.group(2).trim() : "";
-                                Elements element = new Elements(wordBefore, wordToSearch, wordAfter);
-                                elementsList.add(element);
-                                //this.tableView.setItems(elementsList);
-                            }
-                        }
-                    } catch (FileNotFoundException e) {
+                    try {
+                        ScanerFile(file, wordToSearch, elementsList);
+                    } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
-                tableView.setItems(elementsList);
+               tableView.setItems(elementsList);
+                searchPane.clear();
             }
         }
-        searchPane.clear();
+    }
+
+    public void ScanerFile(File file, String wordToSearch, ObservableList<Elements> elementsList) throws IOException {
+        String fileName = file.getName();
+        if (fileName.endsWith(".txt")) {
+            processTXT(file, wordToSearch, elementsList);
+        } else if (fileName.endsWith(".pdf")) {
+            processPDF(file, wordToSearch, elementsList);
+        } else if (fileName.endsWith(".docx")) {
+            processDOCX(file, wordToSearch, elementsList);
+        } else {
+            throw new IllegalArgumentException("Tipo de archivo no soportado: " + fileName);
+        }
+    }
+
+
+    private void processPDF(File file, String wordToSearch, ObservableList<Elements> elementsList) throws IOException {
+        try (PDDocument document = PDDocument.load(file)) {
+            PDFTextStripper pdfStripper = new PDFTextStripper();
+            String text = pdfStripper.getText(document);
+            Pattern pattern = Pattern.compile("(?<=\\b)" + wordToSearch + "(?=\\b)(\\s*)(\\w+)?");
+            Matcher matcher = pattern.matcher(text);
+            while (matcher.find()) {
+                String wordBefore = matcher.group(1) != null ? matcher.group(1).trim() : "";
+                String wordAfter = matcher.group(2) != null ? matcher.group(2).trim() : "";
+                Elements element = new Elements(wordBefore, wordToSearch, wordAfter);
+                elementsList.add(element);
+            }
+        }
+    }
+
+    private void processTXT(File file, String wordToSearch, ObservableList<Elements> elementsList) throws IOException {
+        try (Scanner scanner = new Scanner(file)) {
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                Pattern p = Pattern.compile("(\\w+)?\\s*" + wordToSearch + "(\\s+\\w+)?");
+                Matcher m = p.matcher(line);
+                while (m.find()) {
+                    String wordBefore = m.group(1) != null ? m.group(1) : "";
+                    String wordAfter = m.group(2) != null ? m.group(2).trim() : "";
+                    Elements element = new Elements(wordBefore, wordToSearch, wordAfter);
+                    elementsList.add(element);
+                    //this.tableView.setItems(elementsList);
+                }
+            }
+        }
+    }
+
+    private void processDOCX(File file, String wordToSearch, ObservableList<Elements> elementsList) throws IOException {
+        try (XWPFDocument document = new XWPFDocument(new FileInputStream(file))) {
+            for (XWPFParagraph paragraph : document.getParagraphs()) {
+                for (XWPFRun run : paragraph.getRuns()) {
+                    String text = run.getText(run.getTextPosition());
+                    if (text!= null && text.contains(wordToSearch)) {
+                        Pattern pattern = Pattern.compile("(?<=\\b)" + wordToSearch + "(?=\\b)(\\s*)(\\w+)?");
+                        Matcher matcher = pattern.matcher(text);
+                        while (matcher.find()) {
+                            String wordBefore = matcher.group(1)!= null? matcher.group(1).trim() : "";
+                            String wordAfter = matcher.group(2)!= null? matcher.group(2).trim() : "";
+                            Elements element = new Elements(wordBefore, wordToSearch, wordAfter);
+                            elementsList.add(element);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void validatePhrase(String phrase) {
@@ -278,6 +386,9 @@ public class Controller implements Initializable {
         for (int i = 0; i < listFiles.size(); i++) {
             System.out.println(listFiles.get(i));
         }
+        elementsList.clear();
+        tableView.setItems(elementsList);
+        wordListView.getItems().clear();
     }
 
     //boton para empezar a meter lo de las palabras de los files al arbol y lo demás
@@ -296,6 +407,7 @@ public class Controller implements Initializable {
             }
         }
     }
+
     private void showAlert(String title, String content) {
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle(title);

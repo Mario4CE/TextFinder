@@ -143,21 +143,10 @@ public class AVLTree {
         searchAllHelper(node.left, wordToSearch, results);
         searchAllHelper(node.right, wordToSearch, results);
     }
-
-    // Método para imprimir el árbol AVL de manera recursiva
-    public void printTree(AVLNode node, String indent) {
-        if (node!= null) {
-            System.out.println(indent + "Nodo: " + node.data.getWord() + ", Altura: " + node.height);
-            printTree(node.left, indent + "  "); // Imprime el subárbol izquierdo
-            printTree(node.right, indent + "  "); // Imprime el subárbol derecho
-        }
-    }
-
-    public void printTree(AVLNode node) {
-        printTree(node, "");
-    }
-
     public boolean isTreeEmpty() {
         return root == null;
+    }
+    public void clear(){
+        root = null;
     }
 }

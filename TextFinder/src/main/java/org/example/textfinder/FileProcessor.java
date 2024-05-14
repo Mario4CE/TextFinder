@@ -1,19 +1,28 @@
 package org.example.textfinder;
 
-import org.apache.pdfbox.Loader;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+
+import java.io.FileInputStream;
+
 import java.io.*;
 import java.util.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class FileProcessor {
     private AVLTree avlTree;
     private int position;
+    private List<String> searchResults = new ArrayList<>();
 
 
     public FileProcessor(AVLTree avlTree, Set<String> occurrenceList) {
@@ -85,11 +94,13 @@ public class FileProcessor {
                 if (foundWords.isEmpty()) {
                     // Si la palabra no existe, crea una nueva instancia de WordData
                     avlTree.root = avlTree.insert(avlTree.root, wordDataUsage);
+
                 } else {
                     // Si la palabra ya existe, simplemente incrementa el contador y agrega la palabra a la lista
                     WordData existingWordData = foundWords.get(0); // Asume que solo hay una coincidencia
                     existingWordData.incrementWordCount(normalizedWord);
                     existingWordData.getWordList().add(wordDataUsage); // Actualiza la lista con el txtFile
+                    System.err.println(wordDataUsage);
                 }
                 position++;
             }
@@ -126,53 +137,48 @@ public class FileProcessor {
         }
     }
 
-        // Método para extraer texto de un archivo PDF, TXT, DOCX
-        private String extractText(File file) throws IOException {
-            String extractedText = "";
+    // Método para extraer texto de un archivo PDF, TXT, DOCX
+    private String extractText(File file) throws IOException {
+        String extractedText = "";
 
-            String fileExtension = "";
-            if (file.getName().lastIndexOf(".")!= -1) {
-                fileExtension = file.getName().substring(file.getName().lastIndexOf(".") + 1);
-            }
-
-            try {
-                switch (fileExtension) {
-                    case "pdf":
-                        try (PDDocument document = Loader.loadPDF(file)) {
-                            PDFTextStripper textStripper = new PDFTextStripper();
-                            extractedText = textStripper.getText(document);
-                        }
-                        break;
-                    case "txt":
-                        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                            StringBuilder text = new StringBuilder();
-                            String line;
-                            while ((line = reader.readLine())!= null) {
-                                text.append(line).append("\n");
-                            }
-                            extractedText = text.toString();
-                        }
-                        break;
-                    case "docx":
-                        try (FileInputStream fis = new FileInputStream(file);
-                             XWPFDocument docxDocument = new XWPFDocument(fis);
-                             XWPFWordExtractor extractor = new XWPFWordExtractor(docxDocument)) {
-                             extractedText = extractor.getText();
-                        }
-                        break;
-                    default:
-                        System.err.println("Tipo de archivo no soportado: " + fileExtension);
-                        break;
-                }
-            } catch (IOException e) {
-                System.err.println("Error al leer el archivo: " + e.getMessage());
-            }
-
-            return extractedText;
+        String fileExtension = "";
+        if (file.getName().lastIndexOf(".")!= -1) {
+            fileExtension = file.getName().substring(file.getName().lastIndexOf(".") + 1);
         }
-    public void deleteFromAVL(File fileToDelete) {
-        // Recorre el árbol AVL para encontrar y eliminar todas las instancias de WordData asociadas con el archivo especificado
-        System.err.println("Holi");
-    }
 
+        try {
+            switch (fileExtension) {
+                case "pdf":
+                    try (PDDocument document = PDDocument.load(file)) {
+                        PDFTextStripper textStripper = new PDFTextStripper();
+                        extractedText = textStripper.getText(document);
+                    }
+                    break;
+                case "txt":
+                    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                        StringBuilder text = new StringBuilder();
+                        String line;
+                        while ((line = reader.readLine())!= null) {
+                            text.append(line).append("\n");
+                        }
+                        extractedText = text.toString();
+                    }
+                    break;
+                case "docx":
+                    try (FileInputStream fis = new FileInputStream(file);
+                         XWPFDocument docxDocument = new XWPFDocument(fis);
+                         XWPFWordExtractor extractor = new XWPFWordExtractor(docxDocument)) {
+                        extractedText = extractor.getText();
+                    }
+                    break;
+                default:
+                    System.err.println("Tipo de archivo no soportado: " + fileExtension);
+                    break;
+            }
+        } catch (IOException e) {
+            System.err.println("Error al leer el archivo: " + e.getMessage());
+        }
+
+        return extractedText;
+    }
 }
