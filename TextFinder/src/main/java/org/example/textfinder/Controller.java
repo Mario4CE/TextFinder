@@ -92,7 +92,7 @@ public class Controller implements Initializable {
         this.forthColumn.setCellValueFactory(new PropertyValueFactory("filename"));
 
         firstColumn.setStyle("-fx-background-color: White; -fx-alignment: center;");
-        secondColumn.setStyle("-fx-background-color: white; -fx-font-weight: bold; -fx-alignment: center;");
+        secondColumn.setStyle("-fx-background-color: white; -fx-font-weight: bold; -fx-alignment: center; -fx-text-fill: blue;");
         thirdColumn.setStyle("-fx-background-color: white; -fx-alignment: center;");
         forthColumn.setStyle("-fx-background-color: white; -fx-alignment: center;");
 
