@@ -48,6 +48,8 @@ public class Controller implements Initializable {
     @FXML
     private ComboBox<String> sortbyBox;
     @FXML
+    private ChoiceBox<String> sortbyChoiceBox;
+    @FXML
     private TableView<Elements> tableView;
     @FXML
     private TableColumn<Elements, String> firstColumn;
@@ -55,6 +57,8 @@ public class Controller implements Initializable {
     private TableColumn<Elements, String> secondColumn;
     @FXML
     private TableColumn<Elements, String> thirdColumn;
+    @FXML
+    private TableColumn<Elements, String> forthColumn;
     @FXML
     private TextField searchPane;
 
@@ -75,6 +79,7 @@ public class Controller implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         sortbyBox.getItems().addAll(sortBy);
+        sortbyChoiceBox.getItems().addAll(sortBy);
         avlTree = new AVLTree();
         ocurrenceList = new HashSet<>(); // Usar HashSet para evitar duplicados
         listFiles = new ArrayList<>();
@@ -84,18 +89,76 @@ public class Controller implements Initializable {
         this.firstColumn.setCellValueFactory(new PropertyValueFactory("first"));
         this.secondColumn.setCellValueFactory(new PropertyValueFactory("second"));
         this.thirdColumn.setCellValueFactory(new PropertyValueFactory("third"));
+        this.forthColumn.setCellValueFactory(new PropertyValueFactory("filename"));
 
         firstColumn.setStyle("-fx-background-color: White; -fx-alignment: center;");
         secondColumn.setStyle("-fx-background-color: white; -fx-font-weight: bold; -fx-alignment: center;");
         thirdColumn.setStyle("-fx-background-color: white; -fx-alignment: center;");
+        forthColumn.setStyle("-fx-background-color: white; -fx-alignment: center;");
+
+        sortbyBox.setOnAction(event ->{
+            String sortOption = sortbyBox.getSelectionModel().getSelectedItem().toString();
+            if ("nombre del archivo".equals(sortOption)) {
+                        FileQuickSort fileSorter = new FileQuickSort(listFiles);
+                        fileSorter.sortFiles();
+                        method1();
+                    }
+            if ("fecha de creación".equals(sortOption)){
+                FileQuickSort fileQuickSort = new FileQuickSort(listFiles);
+                fileQuickSort.sortFiles();
+                method1();
+
+                // Print sorted files
+                for (File file :listFiles) {
+                    System.out.println(file.getName() + ": " + file.lastModified());
+                }
+            }
+        });
     }
+    private void method1(){
+        String input = searchPane.getText();
+        if (input.isEmpty()) {
+            showAlert("Información", "Por favor, ingresa una palabra para buscar.");
+            return;
+        }
+        elementsList.clear();
+        String[] words = input.split("\\s+");
+        boolean isPhrase = words.length > 1;
+        if (isPhrase) {
+            validatePhrase(input);
+        } else {
+            String wordToSearch = input.trim();
+            WordData searchData = new WordData(wordToSearch, null, 0);
+            List<WordData> searchResults = avlTree.searchAll(searchData);
+            if (fileListView.getItems().isEmpty()) {
+                showAlert("Información", "No hay archivos para leer.");
+                searchPane.clear();
+                return;
+            }
+            if (avlTree.isTreeEmpty()) {
+                showAlert("Información", "El árbol está vacío. No hay palabras para buscar.");
+                return;
+            }
+            if (searchResults.isEmpty()) {
+                showAlert("Información", "La palabra no está en el árbol.");
+            } else {
+                List<String> fileSearchResults = new ArrayList<>();
+                for (WordData result : searchResults) {
+                    // Agrega la palabra y su cantidad de apariciones al wordListView
+                    wordListView.getItems().add("Palabra: " + result.getWord() + "  Cantidad: " + result.getCount());
+                }
+                for (File file : listFiles) {
+                    try {
+                        ScanerFile(file, wordToSearch, elementsList);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                tableView.setItems(elementsList);
 
+            }
+        }
 
-    //este sortResultsBy is lo que quiero que pase cuando se selecciona una de las opciones del choiceBox
-    public void sortResultsBy(ActionEvent event) {
-        String sortOption = sortbyBox.getValue();
-        //TODO: aquí agrego lo que quiero que pase cuando se selecciona la opción "nombre del archivo", etc...
-        //ej: if sortOption == "nombre del archivo" -> haga lo de quicksort y así con los otros
     }
 
     //boton para añadir un file
@@ -160,6 +223,7 @@ public class Controller implements Initializable {
                             File file = dir.toFile();
                             listFiles.add(file);
                             fileListView.getItems().add(file.getName());
+
                             String fileType = file.getName().substring(file.getName().lastIndexOf(".") + 1);
 
                             if (fileProcessor != null) {
@@ -263,48 +327,7 @@ public class Controller implements Initializable {
     //boton search
     @FXML
     public void searchWord(ActionEvent event) {
-        String input = searchPane.getText();
-        if (input.isEmpty()) {
-            showAlert("Información", "Por favor, ingresa una palabra para buscar.");
-            return;
-        }
-        String[] words = input.split("\\s+");
-        boolean isPhrase = words.length > 1;
-        if (isPhrase) {
-            validatePhrase(input);
-        } else {
-            String wordToSearch = input.trim();
-            WordData searchData = new WordData(wordToSearch, null, 0);
-            List<WordData> searchResults = avlTree.searchAll(searchData);
-            if (fileListView.getItems().isEmpty()) {
-                showAlert("Información", "No hay archivos para leer.");
-                searchPane.clear();
-                return;
-            }
-
-            if (avlTree.isTreeEmpty()) {
-                showAlert("Información", "El árbol está vacío. No hay palabras para buscar.");
-                return;
-            }
-            if (searchResults.isEmpty()) {
-                showAlert("Información", "La palabra no está en el árbol.");
-            } else {
-                List<String> fileSearchResults = new ArrayList<>();
-                for (WordData result : searchResults) {
-                    // Agrega la palabra y su cantidad de apariciones al wordListView
-                    wordListView.getItems().add("Palabra: " + result.getWord() + "  Cantidad: " + result.getCount());
-                }
-                for (File file : listFiles) {
-                    try {
-                        ScanerFile(file, wordToSearch, elementsList);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-               tableView.setItems(elementsList);
-                searchPane.clear();
-            }
-        }
+        method1();
     }
 
     public void ScanerFile(File file, String wordToSearch, ObservableList<Elements> elementsList) throws IOException {
@@ -330,7 +353,7 @@ public class Controller implements Initializable {
             while (matcher.find()) {
                 String wordBefore = matcher.group(1) != null ? matcher.group(1).trim() : "";
                 String wordAfter = matcher.group(2) != null ? matcher.group(2).trim() : "";
-                Elements element = new Elements(wordBefore, wordToSearch, wordAfter);
+                Elements element = new Elements(wordBefore, wordToSearch, wordAfter, file.getName());
                 elementsList.add(element);
             }
         }
@@ -345,7 +368,7 @@ public class Controller implements Initializable {
                 while (m.find()) {
                     String wordBefore = m.group(1) != null ? m.group(1) : "";
                     String wordAfter = m.group(2) != null ? m.group(2).trim() : "";
-                    Elements element = new Elements(wordBefore, wordToSearch, wordAfter);
+                    Elements element = new Elements(wordBefore, wordToSearch, wordAfter, file.getName());
                     elementsList.add(element);
                     //this.tableView.setItems(elementsList);
                 }
@@ -364,7 +387,7 @@ public class Controller implements Initializable {
                         while (matcher.find()) {
                             String wordBefore = matcher.group(1)!= null? matcher.group(1).trim() : "";
                             String wordAfter = matcher.group(2)!= null? matcher.group(2).trim() : "";
-                            Elements element = new Elements(wordBefore, wordToSearch, wordAfter);
+                            Elements element = new Elements(wordBefore, wordToSearch, wordAfter, file.getName());
                             elementsList.add(element);
                         }
                     }
@@ -383,6 +406,8 @@ public class Controller implements Initializable {
     //TODO: este boton es para cuando se realizan cambios en un archivo y quiero actualizar el file con el que estoy trabajando
     @FXML
     void updateFiles(ActionEvent event) {
+        FileQuickSort fileSorter = new FileQuickSort(listFiles);
+        fileSorter.sortFiles();
         for (int i = 0; i < listFiles.size(); i++) {
             System.out.println(listFiles.get(i));
         }
