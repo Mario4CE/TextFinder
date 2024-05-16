@@ -101,8 +101,8 @@ public class Controller implements Initializable {
                         method1();
                     }
             if ("fecha de creación".equals(sortOption)){
-                FileQuickSort fileQuickSort = new FileQuickSort(listFiles);
-                fileQuickSort.sortFiles();
+                FileBubbleSort fileBubbleSort = new FileBubbleSort();
+                fileBubbleSort.bubbleSortFilesByCreationDate(listFiles);
                 method1();
 
                 // Print sorted files
