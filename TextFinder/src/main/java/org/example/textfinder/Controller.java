@@ -38,7 +38,6 @@ import org.apache.pdfbox.text.PDFTextStripper;
 
 import javax.xml.stream.XMLStreamException;
 
-
 public class Controller implements Initializable {
 
     @FXML
@@ -130,6 +129,7 @@ public class Controller implements Initializable {
             }
         });
     }
+
     private void method1(){
         String input = searchPane.getText();
         if (input.isEmpty()) {
@@ -140,9 +140,11 @@ public class Controller implements Initializable {
         String[] words = input.split("\\s+");
         boolean isPhrase = words.length > 1;
         if (isPhrase) {
+            lastword = input;
             validatePhrase(input);
         } else {
             String wordToSearch = input.trim();
+            lastword = wordToSearch;
             WordData searchData = new WordData(wordToSearch, null, 0);
             List<WordData> searchResults = avlTree.searchAll(searchData);
             if (fileListView.getItems().isEmpty()) {
@@ -328,6 +330,8 @@ public class Controller implements Initializable {
         }
     }
 
+
+    //Se ecarga de cuando habre el archivo subraye la palabra
     private void markFirstOccurrenceInListView(String word) {
         System.err.println("Error al leer el archivo: ");
         // Implementa la lógica para marcar la primera aparición de la palabra en la ListView
@@ -363,7 +367,7 @@ public class Controller implements Initializable {
         try (PDDocument document = PDDocument.load(file)) {
             PDFTextStripper pdfStripper = new PDFTextStripper();
             String text = pdfStripper.getText(document);
-            Pattern pattern = Pattern.compile("(?<=\\b)" + wordToSearch + "(?=\\b)(\\s*)(\\w+)?");
+            Pattern pattern = Pattern.compile("(\\b\\w+\\b)?\\s*(\\b" + wordToSearch + "\\b)\\s*(\\b\\w+\\b)?");
             Matcher matcher = pattern.matcher(text);
             while (matcher.find()) {
                 String wordBefore = matcher.group(1) != null ? matcher.group(1).trim() : "";
@@ -378,11 +382,11 @@ public class Controller implements Initializable {
         try (Scanner scanner = new Scanner(file)) {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
-                Pattern p = Pattern.compile("(\\w+)?\\s*" + wordToSearch + "(\\s+\\w+)?");
+                Pattern p = Pattern.compile("(\\b\\w+\\b)?\\s*(\\b" + wordToSearch + "\\b)\\s*(\\b\\w+\\b)?");
                 Matcher m = p.matcher(line);
                 while (m.find()) {
                     String wordBefore = m.group(1) != null ? m.group(1) : "";
-                    String wordAfter = m.group(2) != null ? m.group(2).trim() : "";
+                    String wordAfter = m.group(3) != null ? m.group(3).trim() : ""; // Cambiado de m.group(2) a m.group(3)
                     Elements element = new Elements(wordBefore, wordToSearch, wordAfter, file.getName());
                     elementsList.add(element);
                     //this.tableView.setItems(elementsList);
@@ -392,29 +396,69 @@ public class Controller implements Initializable {
     }
 
     private void processDOCX(File file, String wordToSearch, ObservableList<Elements> elementsList) throws IOException {
-        try (XWPFDocument document = new XWPFDocument(new FileInputStream(file))) {
+        try (FileInputStream fis = new FileInputStream(file); XWPFDocument document = new XWPFDocument(fis)) {
             for (XWPFParagraph paragraph : document.getParagraphs()) {
                 for (XWPFRun run : paragraph.getRuns()) {
                     String text = run.getText(run.getTextPosition());
-                    if (text!= null && text.contains(wordToSearch)) {
-                        Pattern pattern = Pattern.compile("(?<=\\b)" + wordToSearch + "(?=\\b)(\\s*)(\\w+)?");
+                    if (text != null && text.contains(wordToSearch)) {
+                        // Ajuste de la expresión regular para capturar correctamente los espacios y palabras antes y después
+                        Pattern pattern = Pattern.compile("(\\b\\w+\\b)?\\s*(\\b" + wordToSearch + "\\b)\\s*(\\b\\w+\\b)?");
                         Matcher matcher = pattern.matcher(text);
                         while (matcher.find()) {
-                            String wordBefore = matcher.group(1)!= null? matcher.group(1).trim() : "";
-                            String wordAfter = matcher.group(2)!= null? matcher.group(2).trim() : "";
+                            String wordBefore = matcher.group(1) != null ? matcher.group(1).trim() : "";
+                            String wordAfter = matcher.group(3) != null ? matcher.group(3).trim() : "";
                             Elements element = new Elements(wordBefore, wordToSearch, wordAfter, file.getName());
                             elementsList.add(element);
                         }
                     }
                 }
             }
+        } catch (IOException e) {
+            // Manejo de excepciones
+            System.err.println("Error processing DOCX file: " + e.getMessage());
         }
     }
 
     private void validatePhrase(String phrase) {
-        // Implementa la lógica de validación para la frase
-        System.out.println("Validando frase: " + phrase);
-        // Aquí puedes agregar la lógica específica para validar la frase
+        // Dividir la frase en palabras
+        String[] words = phrase.split("\\s+");
+
+        // Verificar cada palabra en el árbol AVL
+        boolean allWordsExist = true;
+        for (String word : words) {
+            WordData searchData = new WordData(word, null, 0);
+            List<WordData> searchResults = avlTree.searchAll(searchData);
+            if (searchResults.isEmpty()) {
+                allWordsExist = false;
+                break; // Salir del bucle si alguna palabra no está en el árbol
+            }
+        }
+
+        if (!allWordsExist) {
+            showAlert("Información", "Algunas palabras de la frase no están en el árbol AVL.");
+            return;
+        }
+
+        // Si todas las palabras existen, proceder a buscar la frase completa en los archivos
+        for (File file : listFiles) {
+            try {
+                if (file.getName().endsWith(".txt")) {
+                    processTXT(file, phrase, elementsList); // Asume que procesa el archivo TXT buscando la frase
+                } else if (file.getName().endsWith(".pdf")) {
+                    processPDF(file, phrase, elementsList); // Asume que procesa el archivo PDF buscando la frase
+                } else if (file.getName().endsWith(".docx")) {
+                    processDOCX(file, phrase, elementsList); // Asume que procesa el archivo DOCX buscando la frase
+                }
+            } catch (IOException e) {
+                System.err.println("Error al procesar el archivo: " + e.getMessage());
+            }
+        }
+        // Mostrar resultados
+        if (!elementsList.isEmpty()) {
+            showAlert("Información", "Frase encontrada en el archivo: " );
+        } else {
+            showAlert("Información", "La frase no se encontró en ningún documento.");
+        }
     }
 
     //boton de actualizar
