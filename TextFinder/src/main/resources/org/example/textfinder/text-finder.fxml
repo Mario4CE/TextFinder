@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.SplitPane?>
@@ -64,8 +63,8 @@
                   </AnchorPane>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                      <children>
-                        <ListView fx:id="wordListView" prefHeight="200.0" prefWidth="215.0" />
-                        <TableView fx:id="tableView" layoutX="88.0" layoutY="201.0" prefHeight="200.0" prefWidth="381.0">
+                        <ListView fx:id="wordListView" layoutX="256.0" layoutY="200.0" prefHeight="200.0" prefWidth="215.0" />
+                        <TableView fx:id="tableView" prefHeight="200.0" prefWidth="381.0">
                           <columns>
                             <TableColumn fx:id="firstColumn" prefWidth="75.0" />
                             <TableColumn fx:id="secondColumn" prefWidth="75.0" />
@@ -73,7 +72,6 @@
                               <TableColumn fx:id="forthColumn" prefWidth="155.0" />
                           </columns>
                         </TableView>
-                        <ChoiceBox fx:id="sortbyChoiceBox" layoutX="313.0" layoutY="14.0" prefWidth="150.0" />
                      </children></AnchorPane>
               </items>
             </SplitPane>

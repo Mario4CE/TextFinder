@@ -47,8 +47,7 @@ public class Controller implements Initializable {
     private ListView<String> wordListView;
     @FXML
     private ComboBox<String> sortbyBox;
-    @FXML
-    private ChoiceBox<String> sortbyChoiceBox;
+
     @FXML
     private TableView<Elements> tableView;
     @FXML
@@ -79,7 +78,6 @@ public class Controller implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         sortbyBox.getItems().addAll(sortBy);
-        sortbyChoiceBox.getItems().addAll(sortBy);
         avlTree = new AVLTree();
         ocurrenceList = new HashSet<>(); // Usar HashSet para evitar duplicados
         listFiles = new ArrayList<>();
@@ -112,6 +110,23 @@ public class Controller implements Initializable {
                 for (File file :listFiles) {
                     System.out.println(file.getName() + ": " + file.lastModified());
                 }
+            }
+            if ("tamaño".equals(sortOption)){
+                System.out.println("Unsorted file sizes:");
+                for (File file : listFiles) {
+                    System.out.println(file.getName() + ": " + file.length() + " bytes");
+                }
+
+                // Sort the files using radix sort
+                FileSizeRadixSort.radixSort(listFiles);
+                method1();
+
+                // Print sorted file sizes
+                System.out.println("\nSorted file sizes:");
+                for (File file : listFiles) {
+                    System.out.println(file.getName() + ": " + file.length() + " bytes");
+                }
+
             }
         });
     }
