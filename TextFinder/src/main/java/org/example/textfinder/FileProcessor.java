@@ -1,16 +1,10 @@
 package org.example.textfinder;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
-
 import java.io.FileInputStream;
-
 import java.io.*;
 import java.util.*;
 import java.io.File;
@@ -56,8 +50,6 @@ public class FileProcessor {
                 String normalizedWord = word;
                 List<WordData> foundWords = avlTree.search(normalizedWord);
                 WordData wordDataUsage = new WordData(normalizedWord, pdfFile, position);
-                //addedWordsList.insert(wordDataUsage); aquí quiero poder hacer esto, la addedWordsList está en el controller
-
                 if (foundWords.isEmpty()) {
                     // Si la palabra no existe, crea una nueva instancia de WordData
                     avlTree.root = avlTree.insert(avlTree.root, wordDataUsage);

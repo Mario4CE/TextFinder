@@ -4,12 +4,16 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
@@ -69,7 +73,12 @@ public class Controller implements Initializable {
     private FileProcessor fileProcessor;
     private ObservableList<Elements> elementsList;
     private String lastword = "";
+
+
+    ShowDocuSingleton showDocu = ShowDocuSingleton.getInstance();
     private List<String> fileSearchResults = new ArrayList<>();
+
+
 
 
 
@@ -92,7 +101,7 @@ public class Controller implements Initializable {
         secondColumn.setStyle("-fx-background-color: white; -fx-font-weight: bold; -fx-alignment: center; -fx-text-fill: blue;");
         thirdColumn.setStyle("-fx-background-color: white; -fx-alignment: center;");
         forthColumn.setStyle("-fx-background-color: white; -fx-alignment: center;");
-
+        rowClicked();
         sortbyBox.setOnAction(event ->{
             String sortOption = sortbyBox.getSelectionModel().getSelectedItem().toString();
             if ("nombre del archivo".equals(sortOption)) {
@@ -104,8 +113,6 @@ public class Controller implements Initializable {
                 FileBubbleSort fileBubbleSort = new FileBubbleSort();
                 fileBubbleSort.bubbleSortFilesByCreationDate(listFiles);
                 method1();
-
-                // Print sorted files
                 for (File file :listFiles) {
                     System.out.println(file.getName() + ": " + file.lastModified());
                 }
@@ -115,21 +122,38 @@ public class Controller implements Initializable {
                 for (File file : listFiles) {
                     System.out.println(file.getName() + ": " + file.length() + " bytes");
                 }
-
-                // Sort the files using radix sort
                 FileSizeRadixSort.radixSort(listFiles);
                 method1();
-
-                // Print sorted file sizes
                 System.out.println("\nSorted file sizes:");
                 for (File file : listFiles) {
                     System.out.println(file.getName() + ": " + file.length() + " bytes");
                 }
-
             }
         });
     }
-
+    private void rowClicked(){
+        tableView.setOnMouseClicked(mouseEvent -> {
+            Elements selectedItem = tableView.getSelectionModel().getSelectedItem();
+            for (int i = 0; i < listFiles.size(); i++) {
+                if(selectedItem.getFilename().equals(listFiles.get(i).getName())){
+                    showDocu.setFile(listFiles.get(i));
+                }
+            }
+            loadingSecondScene();
+        });
+    }
+    private void loadingSecondScene(){
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("showtext-window.fxml"));
+            Parent root = (Parent) fxmlLoader.load();
+            Stage stage = new Stage();
+            stage.setTitle("Opened File");
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
     private void method1(){
         String input = searchPane.getText();
         if (input.isEmpty()) {
