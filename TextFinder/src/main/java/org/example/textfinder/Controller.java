@@ -193,7 +193,6 @@ public class Controller implements Initializable {
         }
 
     }
-
     //boton para añadir un file
     @FXML
     void addFile(ActionEvent event) {
@@ -220,7 +219,6 @@ public class Controller implements Initializable {
             }
         }
     }
-
     private String getFileExtension(File file) {
         String fileExtension = "";
         if (file.getName().endsWith(".txt")) {
@@ -308,7 +306,6 @@ public class Controller implements Initializable {
             }
         }
     }
-
     //boton para abrir un file
     @FXML
     void openFile(ActionEvent event) {
@@ -345,7 +342,6 @@ public class Controller implements Initializable {
             showAlert("Información", "No se ha encontrado ninguna palabra aún.");
         }
     }
-
 
     //Se ecarga de cuando habre el archivo subraye la palabra
     private void markFirstOccurrenceInListView(String word) {

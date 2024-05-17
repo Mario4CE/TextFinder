@@ -10,7 +10,6 @@ public class FileQuickSort {
     public FileQuickSort(FileLinkedList files) {
         this.files = files;
     }
-
     public void sortFiles() {
         quicksort(0, files.size() - 1);
 
@@ -20,7 +19,6 @@ public class FileQuickSort {
             System.out.println(file.getName());
         }
     }
-
     private void quicksort(int low, int high) {
         if (low < high) {
             int pi = partition(low, high);
@@ -29,7 +27,6 @@ public class FileQuickSort {
             quicksort(pi + 1, high);
         }
     }
-
     private int partition(int low, int high) {
         String pivot = files.get(high).getName();
         int i = low - 1;
@@ -43,7 +40,6 @@ public class FileQuickSort {
                 files.set(j, temp);
             }
         }
-
         File temp = files.get(i + 1);
         files.set(i + 1, files.get(high));
         files.set(high, temp);

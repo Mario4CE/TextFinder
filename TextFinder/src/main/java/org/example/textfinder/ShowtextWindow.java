@@ -12,6 +12,7 @@ import java.util.ResourceBundle;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 
+//segundo "controller" para la segunda pantalla
 public class ShowtextWindow implements Initializable {
 
     @FXML

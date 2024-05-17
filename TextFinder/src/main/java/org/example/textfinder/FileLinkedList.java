@@ -46,7 +46,7 @@ class FileLinkedList implements Iterable<File> {
         return size;
     }
 
-    // Get file at specified index
+    // Buscar el file en el index
     public File get(int index) {
         if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
@@ -60,7 +60,7 @@ class FileLinkedList implements Iterable<File> {
         return current.data;
     }
 
-    // Remove file at specified index
+    // Quitar el file en un index
     public void remove(int index) {
         if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
@@ -78,7 +78,7 @@ class FileLinkedList implements Iterable<File> {
         size--;
     }
 
-    // Set file at specified index
+    // Poner un file en un index especifico
     public void set(int index, File file) {
         if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
@@ -91,7 +91,7 @@ class FileLinkedList implements Iterable<File> {
         current.data = file;
     }
 
-    // Implementing Iterable interface
+    // Para que se pueda usar el for iterador
     @Override
     public Iterator<File> iterator() {
         return new FileIterator();
@@ -105,7 +105,6 @@ class FileLinkedList implements Iterable<File> {
         public boolean hasNext() {
             return current != null;
         }
-
         @Override
         public File next() {
             if (!hasNext()) {
