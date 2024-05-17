@@ -1,6 +1,6 @@
 package org.example.textfinder;
 
-import java.util.NoSuchElementException;
+
 
 public class LinkedList {
 
@@ -60,6 +60,4 @@ public class LinkedList {
         }
         return current.data;
     }
-
-
 }

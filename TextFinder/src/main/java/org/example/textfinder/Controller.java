@@ -64,7 +64,7 @@ public class Controller implements Initializable {
     @FXML
     private TextField searchPane;
 
-    List<File> listFiles = new ArrayList<>();
+    FileLinkedList listFiles = new FileLinkedList();
 
     private AVLTree avlTree;
     private Set<String> ocurrenceList = new HashSet<>(); // Usar HashSet para evitar duplicados
@@ -73,14 +73,7 @@ public class Controller implements Initializable {
     private FileProcessor fileProcessor;
     private ObservableList<Elements> elementsList;
     private String lastword = "";
-
-
     ShowDocuSingleton showDocu = ShowDocuSingleton.getInstance();
-    private List<String> fileSearchResults = new ArrayList<>();
-
-
-
-
 
     //aquí se pone toda la logica con lo que se necesita cuando apenas se inicia la aplicación
     @Override
@@ -88,7 +81,7 @@ public class Controller implements Initializable {
         sortbyBox.getItems().addAll(sortBy);
         avlTree = new AVLTree();
         ocurrenceList = new HashSet<>(); // Usar HashSet para evitar duplicados
-        listFiles = new ArrayList<>();
+        listFiles = new FileLinkedList();
         fileProcessor = new FileProcessor(avlTree, ocurrenceList);
         elementsList = FXCollections.observableArrayList();
 
@@ -196,7 +189,6 @@ public class Controller implements Initializable {
                     }
                 }
                 tableView.setItems(elementsList);
-
             }
         }
 

@@ -5,9 +5,9 @@ import java.io.File;
 import java.util.List;
 
 public class FileQuickSort {
-    private List<File> files;
+    private FileLinkedList files;
 
-    public FileQuickSort(List<File> files) {
+    public FileQuickSort(FileLinkedList files) {
         this.files = files;
     }
 

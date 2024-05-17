@@ -7,7 +7,7 @@ import java.util.List;
 public class FileSizeRadixSort {
 
     // A utility function to get the maximum file size
-    static long getMax(List<File> files) {
+    static long getMax(FileLinkedList files) {
         long max = files.get(0).length();
         for (File file : files) {
             if (file.length() > max) {
@@ -18,7 +18,7 @@ public class FileSizeRadixSort {
     }
 
     // A function to do counting sort of files[] according to the digit represented by exp (exponent)
-    static void countingSort(List<File> files, int exp) {
+    static void countingSort(FileLinkedList files, int exp) {
         int n = files.size();
         File[] output = new File[n]; // output array
         int[] count = new int[10];
@@ -49,7 +49,7 @@ public class FileSizeRadixSort {
     }
 
     // The main function to sort files[] using Radix Sort
-    public static void radixSort(List<File> files) {
+    public static void radixSort(FileLinkedList files) {
         // Find the maximum number to know the number of digits
         long max = getMax(files);
 

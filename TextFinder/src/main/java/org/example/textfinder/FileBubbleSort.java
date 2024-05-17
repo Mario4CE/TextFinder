@@ -8,7 +8,7 @@ import java.util.List;
 
 public class FileBubbleSort {
 
-    public static void bubbleSortFilesByCreationDate(List<File> files) {
+    public static void bubbleSortFilesByCreationDate(FileLinkedList files) {
         int n = files.size();
         for (int i = 0; i < n - 1; i++) {
             for (int j = 0; j < n - i - 1; j++) {
