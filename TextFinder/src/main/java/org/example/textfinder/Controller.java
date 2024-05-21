@@ -237,8 +237,8 @@ public class Controller implements Initializable {
             fileExtension = "pdf";
         } else {
             // Devuelve un valor especial en lugar de lanzar una excepción
-            fileExtension = "noProcessable";
-        }
+            fileExtension = "noProcessable";};
+        LOG.error("Error:: Archivo no soportado");
         return fileExtension;
     }
 
