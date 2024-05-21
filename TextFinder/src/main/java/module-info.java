@@ -6,6 +6,8 @@ module org.example.textfinder {
 
     requires java.desktop;
     requires jssc;
+    requires log4j;
+    requires java.logging;
     opens org.example.textfinder to javafx.fxml;
     exports org.example.textfinder;
 }
