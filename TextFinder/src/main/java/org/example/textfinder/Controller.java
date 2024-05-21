@@ -313,6 +313,7 @@ public class Controller implements Initializable {
                 fileProcessor.processFile(file, fileType);
             } catch (IOException e) {
                 System.err.println("Error al procesar el archivo: " + e.getMessage());
+                LOG.error("Error:: Error al procesar el archivo: " + e.getMessage());
             }
         }
     }
