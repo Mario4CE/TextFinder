@@ -14,6 +14,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.apache.log4j.Logger;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
@@ -40,6 +41,7 @@ import javafx.scene.control.Alert.AlertType;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 
+import javax.swing.*;
 import javax.xml.stream.XMLStreamException;
 
 public class Controller implements Initializable {
@@ -63,6 +65,8 @@ public class Controller implements Initializable {
     private TableColumn<Elements, String> forthColumn;
     @FXML
     private TextField searchPane;
+
+    private static final Logger LOG = Log.getLogger(Controller.class);
 
     FileLinkedList listFiles = new FileLinkedList();
 
@@ -147,10 +151,12 @@ public class Controller implements Initializable {
             throw new RuntimeException(e);
         }
     }
+
     private void method1(){
         String input = searchPane.getText();
         if (input.isEmpty()) {
             showAlert("Información", "Por favor, ingresa una palabra para buscar.");
+            LOG.info("Info:: NO se a ingresado una palabra");
             return;
         }
         elementsList.clear();
@@ -171,6 +177,7 @@ public class Controller implements Initializable {
             }
             if (avlTree.isTreeEmpty()) {
                 showAlert("Información", "El árbol está vacío. No hay palabras para buscar.");
+
                 return;
             }
             if (searchResults.isEmpty()) {
@@ -216,6 +223,7 @@ public class Controller implements Initializable {
             } catch (IOException e) {
                 System.err.println("Error al procesar el archivo: " + e.getMessage());
                 showAlert("Información", "No se puede procesar el archivo: " + e.getMessage());
+                LOG.error("Error:: No se puede procesar el archivo: " + e.getMessage());
             }
         }
     }
@@ -229,8 +237,8 @@ public class Controller implements Initializable {
             fileExtension = "pdf";
         } else {
             // Devuelve un valor especial en lugar de lanzar una excepción
-            fileExtension = "noProcessable";
-        }
+            fileExtension = "noProcessable";};
+        LOG.error("Error:: Archivo no soportado");
         return fileExtension;
     }
 
@@ -265,11 +273,13 @@ public class Controller implements Initializable {
                                 }
                             } else {
                                 System.out.println("fileProcessor es null");
+                                LOG.error("fileProcessor es null");
                             }
                         });
             } catch (NoSuchFileException | UnsupportedOperationException e) {
                 // Manejar excepciones específicas
                 System.err.println("Error al recorrer el directorio: " + e.getMessage());
+                LOG.error("Error:: No se puede procesar el archivo: " + e.getMessage());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -303,10 +313,12 @@ public class Controller implements Initializable {
                 fileProcessor.processFile(file, fileType);
             } catch (IOException e) {
                 System.err.println("Error al procesar el archivo: " + e.getMessage());
+                LOG.error("Error:: Error al procesar el archivo: " + e.getMessage());
             }
         }
     }
     //boton para abrir un file
+
     @FXML
     void openFile(ActionEvent event) {
         if (!lastword.isEmpty()) {
@@ -330,8 +342,7 @@ public class Controller implements Initializable {
                 // Abrir el archivo encontrado
                 try {
                     Desktop.getDesktop().open(foundFile);
-                    // Marcar la primera aparición de la última palabra encontrada en la ListView
-                    markFirstOccurrenceInListView(lastword);
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -340,19 +351,8 @@ public class Controller implements Initializable {
             }
         } else {
             showAlert("Información", "No se ha encontrado ninguna palabra aún.");
+            LOG.error("Información:: No se ha encontrado ninguna palabra aún.");
         }
-    }
-
-    //Se ecarga de cuando habre el archivo subraye la palabra
-    private void markFirstOccurrenceInListView(String word) {
-        System.err.println("Error al leer el archivo: ");
-        // Implementa la lógica para marcar la primera aparición de la palabra en la ListView
-        // Esto podría implicar agregar la línea que contiene la palabra a la lista de líneas marcadas
-        // y luego actualizar la ListView con esta lista
-        // Por ejemplo, si tienes una lista observable de líneas marcadas:
-        // markedLinesList.add(lineContainingWord);
-        // Y luego actualizas la ListView con esta lista
-        // wordListView.getItems().setAll(markedLinesList);
     }
 
     //boton search
@@ -428,10 +428,78 @@ public class Controller implements Initializable {
         } catch (IOException e) {
             // Manejo de excepciones
             System.err.println("Error processing DOCX file: " + e.getMessage());
+            LOG.error("Error::processing DOCX file: " + e.getMessage());
+
         }
     }
 
     private void validatePhrase(String phrase) {
+        // Preguntar al usuario si desea buscar por palabra o por frase completa
+        int choice = JOptionPane.showOptionDialog(null,
+                "¿Desea buscar por palabra o por frase completa?",
+                "Elegir método de búsqueda",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                new Object[]{"Por palabra", "Por frase completa"},
+                "Por palabra");
+
+        switch (choice) {
+            case JOptionPane.NO_OPTION:
+                // Buscar por frase completa
+                searchByPhrase(phrase);
+                break;
+            default:
+                // Buscar por palabra
+                validateWords(phrase);
+                break;
+        }
+    }
+
+    private void validateWords(String phrase) {
+        // Dividir la frase en palabras
+        String[] words = phrase.split("\\s+");
+
+        // Verificar cada palabra en el árbol AVL
+        boolean allWordsExist = true;
+        for (String word : words) {
+            WordData searchData = new WordData(word, null, 0);
+            List<WordData> searchResults = avlTree.searchAll(searchData);
+            if (searchResults.isEmpty()) {
+                allWordsExist = false;
+                break; // Salir del bucle si alguna palabra no está en el árbol
+            }
+        }
+
+        if (!allWordsExist) {
+            showAlert("Información", "Algunas palabras de la frase no están en el árbol AVL.");
+            return;
+        }
+        // Si todas las palabras existen, proceder a buscar cada palabra en los archivos
+        for (File file : listFiles) {
+            try {
+                if (file.getName().endsWith(".txt")) {
+                    processTXT(file, words[0], elementsList); // Corrección: Pasar la primera palabra como argumento
+                } else if (file.getName().endsWith(".pdf")) {
+                    processPDF(file, words[0], elementsList); // Corrección: Pasar la primera palabra como argumento
+                } else if (file.getName().endsWith(".docx")) {
+                    processDOCX(file, words[0], elementsList); // Corrección: Pasar la primera palabra como argumento
+                }
+            } catch (IOException e) {
+                System.err.println("Error al procesar el archivo: " + e.getMessage());
+                LOG.error("Error::processing: " + e.getMessage());
+            }
+        }
+        // Mostrar resultados
+        if (!elementsList.isEmpty()) {
+            showAlert("Información", "Frase encontrada en el archivo: " );
+        } else {
+            showAlert("Información", "La frase no se encontró en ningún documento.");
+        }
+    }
+
+
+    private void searchByPhrase(String phrase) {
         // Dividir la frase en palabras
         String[] words = phrase.split("\\s+");
 
@@ -463,6 +531,7 @@ public class Controller implements Initializable {
                 }
             } catch (IOException e) {
                 System.err.println("Error al procesar el archivo: " + e.getMessage());
+                LOG.error("Error::processing: " + e.getMessage());
             }
         }
         // Mostrar resultados
