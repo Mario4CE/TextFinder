@@ -49,10 +49,7 @@ public class Controller implements Initializable {
     @FXML
     private ListView<String> fileListView;
     @FXML
-    private ListView<String> wordListView;
-    @FXML
     private ComboBox<String> sortbyBox;
-
     @FXML
     private TableView<Elements> tableView;
     @FXML
@@ -186,7 +183,6 @@ public class Controller implements Initializable {
                 List<String> fileSearchResults = new ArrayList<>();
                 for (WordData result : searchResults) {
                     // Agrega la palabra y su cantidad de apariciones al wordListView
-                    wordListView.getItems().add("Palabra: " + result.getWord() + "  Cantidad: " + result.getCount());
                 }
                 for (File file : listFiles) {
                     try {
@@ -553,7 +549,6 @@ public class Controller implements Initializable {
         }
         elementsList.clear();
         tableView.setItems(elementsList);
-        wordListView.getItems().clear();
     }
 
     //boton para empezar a meter lo de las palabras de los files al arbol y lo demás

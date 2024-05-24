@@ -2,12 +2,12 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.effect.Bloom?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
@@ -15,27 +15,19 @@
   <items>
     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="398.0" prefWidth="216.0">
          <children>
-            <SplitPane dividerPositions="0.15637860082304528" layoutX="-3.0" layoutY="-2.0" orientation="VERTICAL" prefHeight="488.0" prefWidth="265.0">
+            <SplitPane dividerPositions="0.15637860082304528" layoutX="-3.0" layoutY="-2.0" orientation="VERTICAL" prefHeight="488.0" prefWidth="265.0" style="-fx-background-color: black;">
               <items>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="150.0" prefWidth="277.0">
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="150.0" prefWidth="277.0" style="-fx-background-color: #1D2951;">
                      <children>
-                        <Button fx:id="addButton" layoutX="8.0" layoutY="10.0" mnemonicParsing="false" onAction="#addFile" text="Añadir Documento" />
-                        <Button fx:id="deleteButton" layoutX="132.0" layoutY="10.0" mnemonicParsing="false" onAction="#deleteFile" text="Eliminar Documento" />
-                        <Button fx:id="updateButton" layoutX="110.0" layoutY="37.0" mnemonicParsing="false" onAction="#updateFiles" text="Actualizar" />
-                        <Button fx:id="startButton" layoutX="187.0" layoutY="43.0" mnemonicParsing="false" onAction="#startIndexing" prefHeight="32.0" prefWidth="74.0" style="-fx-background-color: GREEN;" text="Let's start" textAlignment="CENTER" textFill="WHITE">
-                           <font>
-                              <Font size="13.0" />
-                           </font>
-                           <effect>
-                              <Bloom />
-                           </effect>
-                        </Button>
-                        <Button fx:id="addDirButton" layoutX="8.0" layoutY="37.0" mnemonicParsing="false" onAction="#addDir" text="Añadir Carpeta" />
+                        <Button fx:id="addButton" layoutX="8.0" layoutY="10.0" mnemonicParsing="false" onAction="#addFile" style="-fx-background-color: d9ff66;" text="Añadir Documento" />
+                        <Button fx:id="deleteButton" layoutX="132.0" layoutY="10.0" mnemonicParsing="false" onAction="#deleteFile" style="-fx-background-color: #588BAE;" text="Eliminar Documento" />
+                        <Button fx:id="updateButton" layoutX="160.0" layoutY="37.0" mnemonicParsing="false" onAction="#updateFiles" style="-fx-background-color: d9ff66;" text="Actualizar" />
+                        <Button fx:id="addDirButton" layoutX="19.0" layoutY="37.0" mnemonicParsing="false" onAction="#addDir" style="-fx-background-color: d9ff66;" text="Añadir Carpeta" />
                      </children>
                   </AnchorPane>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="388.0" prefWidth="261.0">
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="388.0" prefWidth="261.0" style="-fx-background-color: #588BAE;">
                      <children>
-                        <AnchorPane layoutX="6.0" layoutY="6.0" prefHeight="391.0" prefWidth="252.0" style="-fx-background-color: GRAY;">
+                        <AnchorPane layoutX="6.0" layoutY="6.0" prefHeight="391.0" prefWidth="252.0" style="-fx-background-color: #1D2951;">
                            <children>
                               <ListView fx:id="fileListView" layoutX="8.0" layoutY="7.0" prefHeight="378.0" prefWidth="236.0" />
                            </children>
@@ -47,31 +39,40 @@
          </children></AnchorPane>
     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="398.0" prefWidth="335.0">
          <children>
-            <SplitPane dividerPositions="0.15625" layoutY="-1.0" orientation="VERTICAL" prefHeight="482.0" prefWidth="479.0">
+            <SplitPane dividerPositions="0.15625" layoutY="-1.0" orientation="VERTICAL" prefHeight="482.0" prefWidth="473.0" style="-fx-background-color: #588BAE;">
               <items>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0" style="-fx-background-color: #1D2951;">
                      <children>
-                        <AnchorPane layoutX="6.0" layoutY="12.0" prefHeight="55.0" prefWidth="276.0" style="-fx-background-color: GRAY;">
+                        <AnchorPane layoutX="6.0" layoutY="12.0" prefHeight="55.0" prefWidth="276.0" style="-fx-background-color: #588BAE;">
                            <children>
-                              <TextField fx:id="searchPane" layoutX="8.0" layoutY="12.0" prefHeight="32.0" prefWidth="197.0" />
-                              <Button fx:id="searchButton" layoutX="211.0" layoutY="15.0" mnemonicParsing="false" onAction="#searchWord" text="Buscar" />
+                              <Button fx:id="searchButton" layoutX="211.0" layoutY="15.0" mnemonicParsing="false" onAction="#searchWord" style="-fx-background-color: d9ff66;" text="Buscar" />
+                              <TextField fx:id="searchPane" layoutX="17.0" layoutY="14.0" prefHeight="31.0" prefWidth="182.0" />
                            </children>
                         </AnchorPane>
-                        <Button fx:id="openButton" layoutX="330.0" layoutY="7.0" mnemonicParsing="false" onAction="#openFile" text="Abrir documento" />
-                        <ComboBox fx:id="sortbyBox" layoutX="309.0" layoutY="40.0" prefWidth="150.0" promptText="Ordenar por:" />
+                        <Button fx:id="openButton" layoutX="330.0" layoutY="7.0" mnemonicParsing="false" onAction="#openFile" style="-fx-background-color: d9ff66;" text="Abrir documento" />
+                        <ComboBox fx:id="sortbyBox" layoutX="309.0" layoutY="40.0" prefWidth="150.0" promptText="Ordenar por:" style="-fx-background-color: #588BAE;" />
                      </children>
                   </AnchorPane>
-                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="402.0" prefWidth="464.0" style="-fx-background-color: #1D2951;">
                      <children>
-                        <ListView fx:id="wordListView" layoutX="256.0" layoutY="200.0" prefHeight="200.0" prefWidth="215.0" />
-                        <TableView fx:id="tableView" prefHeight="200.0" prefWidth="381.0">
+                        <TableView fx:id="tableView" layoutX="-1.0" layoutY="51.0" prefHeight="288.0" prefWidth="473.0">
                           <columns>
-                            <TableColumn fx:id="firstColumn" prefWidth="75.0" />
-                            <TableColumn fx:id="secondColumn" prefWidth="75.0" />
-                              <TableColumn fx:id="thirdColumn" prefWidth="75.0" />
-                              <TableColumn fx:id="forthColumn" prefWidth="155.0" />
+                            <TableColumn fx:id="firstColumn" prefWidth="103.0" />
+                            <TableColumn fx:id="secondColumn" prefWidth="107.0" />
+                              <TableColumn fx:id="thirdColumn" prefWidth="120.0" />
+                              <TableColumn fx:id="forthColumn" prefWidth="142.0" />
                           </columns>
                         </TableView>
+                        <Label layoutX="14.0" layoutY="14.0" text="Found Text:" textAlignment="CENTER" textFill="WHITE">
+                           <font>
+                              <Font name="Showcard Gothic" size="24.0" />
+                           </font>
+                        </Label>
+                        <Label layoutX="51.0" layoutY="356.0" text="Para ver el contexto completo de las palabras dales click!" textFill="#fff9f9">
+                           <font>
+                              <Font name="Yu Gothic Regular" size="14.0" />
+                           </font>
+                        </Label>
                      </children></AnchorPane>
               </items>
             </SplitPane>
